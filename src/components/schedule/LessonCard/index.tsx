@@ -1,4 +1,3 @@
-// components/schedule/LessonCard/index.tsx
 'use client'
 
 import { Lesson } from '@/lib/types/shedule';

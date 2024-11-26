@@ -39,3 +39,18 @@ export const DAYS_OF_WEEK = [
 	{ id: '5', name: 'ПЯТНИЦА' },
 	{ id: '6', name: 'СУББОТА' },
 ];
+
+export interface Course {
+	number: number;
+	subgroup: number;
+	name: string;
+}
+
+export interface Group {
+	id: string;
+	name: string;
+	course: number;
+	subgroup: number;
+}
+
+// ... остальные типы остаются без изменений

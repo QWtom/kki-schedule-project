@@ -5,14 +5,36 @@ import { Group } from '@/lib/types/shedule';
 
 interface CourseSelectorProps {
 	groups: Group[];
-	selectedCourse: number | null;
-	onCourseChange: (course: number) => void;
+	selectedCourse: string | null;
+	onCourseChange: (courseKey: string) => void;
 	disabled?: boolean;
 }
 
-export const CourseSelector = ({ groups, selectedCourse, onCourseChange, disabled }: CourseSelectorProps) => {
-	// Получаем уникальные курсы
-	const courses = Array.from(new Set(groups.map(g => g.course))).sort((a, b) => a - b);
+export const CourseSelector = ({
+	groups,
+	selectedCourse,
+	onCourseChange,
+	disabled
+}: CourseSelectorProps) => {
+	const courseGroups = groups.reduce((acc, group) => {
+		const key = `${group.course}(${group.subgroup})`;
+		if (!acc[key]) {
+			acc[key] = {
+				courseNumber: group.course,
+				subgroup: group.subgroup,
+				label: `${group.course} курс(${group.subgroup})`
+			};
+		}
+		return acc;
+	}, {} as Record<string, { courseNumber: number; subgroup: number; label: string; }>);
+
+	const sortedCourses = Object.entries(courseGroups)
+		.sort(([keyA, a], [keyB, b]) => {
+			if (a.courseNumber === b.courseNumber) {
+				return a.subgroup - b.subgroup;
+			}
+			return a.courseNumber - b.courseNumber;
+		});
 
 	return (
 		<FormControl fullWidth>
@@ -20,15 +42,15 @@ export const CourseSelector = ({ groups, selectedCourse, onCourseChange, disable
 			<Select
 				value={selectedCourse || ''}
 				label="Курс"
-				onChange={(e) => onCourseChange(Number(e.target.value))}
-				disabled={disabled || courses.length === 0}
+				onChange={(e) => onCourseChange(e.target.value)}
+				disabled={disabled}
 			>
 				<MenuItem value="">
 					<em>Выберите курс</em>
 				</MenuItem>
-				{courses.map((course) => (
-					<MenuItem key={course} value={course}>
-						{course} курс
+				{sortedCourses.map(([key, course]) => (
+					<MenuItem key={key} value={key}>
+						{course.label}
 					</MenuItem>
 				))}
 			</Select>

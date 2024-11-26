@@ -1,4 +1,3 @@
-// components/schedule/DaySelector/index.tsx
 'use client'
 
 import { ButtonGroup, Button, Stack, Typography, Box, alpha } from '@mui/material';

@@ -1,4 +1,3 @@
-// app/page.tsx
 'use client'
 
 import { useState } from 'react';
@@ -18,13 +17,13 @@ import { DaySelector } from '@/components/schedule/DaySelector';
 import { GroupSelector } from '@/components/schedule/GroupSelector';
 import { LessonCard } from '@/components/schedule/LessonCard';
 import { useScheduleImport } from '@/lib/hooks/useSheduleImport';
-import { getCurrentDayId, getGroupDaySchedule } from '@/lib/utils/excelParser';
+import { getCurrentDayId, getGroupDaySchedule } from '@/lib/utils/getUtilsParser';
 import { CourseSelector } from '@/components/schedule/CourseSelector/CourseSelector';
 
 export default function Home() {
   const [selectedDay, setSelectedDay] = useState(getCurrentDayId());
   const [selectedGroup, setSelectedGroup] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
 
   const {
     isLoading,
@@ -39,19 +38,22 @@ export default function Home() {
     if (file) {
       try {
         await handleFileImport(file);
-        console.log('File import successful');
       } catch (error) {
         console.error('File import failed:', error);
       }
     }
   };
 
-  const filteredGroups = parsedData?.groups.filter(
-    g => selectedCourse ? g.course === selectedCourse : true
-  ) || [];
+  const filteredGroups = parsedData?.groups.filter(g => {
+    if (!selectedCourse) return true;
+    const [courseStr, subgroupStr] = selectedCourse.replace(')', '').split('(');
+    const course = parseInt(courseStr);
+    const subgroup = parseInt(subgroupStr);
+    return g.course === course && g.subgroup === subgroup;
+  }) || [];
 
-  const handleCourseChange = (course: number) => {
-    setSelectedCourse(course);
+  const handleCourseChange = (courseKey: string) => {
+    setSelectedCourse(courseKey);
     setSelectedGroup('');
   };
 
@@ -165,7 +167,7 @@ export default function Home() {
                       }}
                     >
                       <Typography color="text.secondary">
-                        Нет занятий в этот день
+                        Нет пар в этот день
                       </Typography>
                     </Box>
                   )}

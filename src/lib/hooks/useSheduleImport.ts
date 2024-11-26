@@ -1,4 +1,3 @@
-// lib/hooks/useScheduleImport.ts
 import { useState } from 'react';
 import { ParsedSchedule } from '@/lib/types/shedule';
 import { parseExcelFile } from '../utils/excelParser';
@@ -12,12 +11,12 @@ export const useScheduleImport = () => {
 		try {
 			setIsLoading(true);
 			setError(null);
-			console.log('Starting file import');
+			// console.log('Starting file import');
 			const data = await parseExcelFile(file);
-			console.log('Parsed data:', data);
+			// console.log('Parsed data:', data);
 			setParsedData(data);
 		} catch (err) {
-			console.error('Import error:', err);
+			// console.error('Import error:', err);
 			setError(err instanceof Error ? err.message : 'Ошибка импорта файла');
 			setParsedData(null);
 		} finally {

@@ -1,25 +1,25 @@
-// components/schedule/GroupSelector.tsx
-import { FormControl, InputLabel, Select, MenuItem, ListSubheader } from '@mui/material';
-import { Group } from '@/lib/types/shedule';
+'use client'
+
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 interface GroupSelectorProps {
-	groups: Group[];
+	groups: Array<{
+		id: string;
+		name: string;
+		course: number;
+		subgroup: number;
+	}>;
 	selectedGroup: string;
 	onChange: (groupId: string) => void;
 	disabled?: boolean;
 }
 
-export const GroupSelector = ({ groups, selectedGroup, onChange, disabled }: GroupSelectorProps) => {
-	// Группируем группы по курсам
-	const groupedByCourse = groups.reduce((acc, group) => {
-		const course = group.course || 1;
-		if (!acc[course]) {
-			acc[course] = [];
-		}
-		acc[course].push(group);
-		return acc;
-	}, {} as Record<number, Group[]>);
-
+export const GroupSelector = ({
+	groups,
+	selectedGroup,
+	onChange,
+	disabled
+}: GroupSelectorProps) => {
 	return (
 		<FormControl fullWidth>
 			<InputLabel>Группа</InputLabel>
@@ -32,20 +32,11 @@ export const GroupSelector = ({ groups, selectedGroup, onChange, disabled }: Gro
 				<MenuItem value="">
 					<em>Выберите группу</em>
 				</MenuItem>
-				{Object.entries(groupedByCourse)
-					.sort(([a], [b]) => Number(a) - Number(b))
-					.map(([course, courseGroups]) => [
-						<ListSubheader key={`course-${course}`} sx={{ background: 'transparent', color: 'primary.light' }}>
-							{course} курс
-						</ListSubheader>,
-						...courseGroups
-							.sort((a, b) => a.name.localeCompare(b.name))
-							.map(group => (
-								<MenuItem key={group.id} value={group.id}>
-									{group.name}
-								</MenuItem>
-							))
-					]).flat()}
+				{groups.map((group) => (
+					<MenuItem key={group.id} value={group.id}>
+						{group.name}
+					</MenuItem>
+				))}
 			</Select>
 		</FormControl>
 	);
