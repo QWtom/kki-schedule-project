@@ -2,7 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  transpilePackages: ['@mui/material', '@mui/icons-material'],
+  output: 'standalone',
+  images: {
+    unoptimized: true
+  }
 };
 
 module.exports = nextConfig;
