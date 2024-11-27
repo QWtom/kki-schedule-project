@@ -64,10 +64,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 				anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
 				TransitionProps={{ onExited: () => setCurrentMessage(null) }}
 			>
-				{/* Используем немедленно вычисляемое выражение, которое всегда возвращает ReactElement */}
 				{(() => {
 					if (!currentMessage) {
-						return <div />; // Возвращаем пустой div как валидный ReactElement
+						return <div />;
 					}
 					return (
 						<Alert

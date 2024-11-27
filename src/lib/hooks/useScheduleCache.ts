@@ -23,7 +23,7 @@ export function useScheduleCache() {
 
 	const saveSchedule = (scheduleData: ParsedSchedule) => {
 		const timestamp = Date.now();
-		console.log('Saving schedule with timestamp:', timestamp); // Для отладки
+		console.log('Saving schedule with timestamp:', timestamp);
 
 		const cacheEntry: ScheduleCache = {
 			data: scheduleData,
@@ -40,7 +40,6 @@ export function useScheduleCache() {
 		return weekCollection.weeks.find(w => w.weekId === weekCollection.activeWeekId) || null;
 	}, [weekCollection]);
 
-	// Используем useEffect для синхронизации кэша с активной неделей
 	useEffect(() => {
 		const activeWeek = getActiveWeek();
 		if (activeWeek) {
@@ -63,7 +62,6 @@ export function useScheduleCache() {
 	const getCacheMetadata = useCallback(() => {
 		const activeWeek = getActiveWeek();
 
-		// Если есть активная неделя, используем её метаданные
 		if (activeWeek?.uploadDate) {
 			return {
 				lastUpdated: activeWeek.uploadDate,
@@ -71,7 +69,6 @@ export function useScheduleCache() {
 			};
 		}
 
-		// Если нет активной недели, но есть кэш
 		if (cache?.metadata?.lastUpdated) {
 			return cache.metadata;
 		}
@@ -97,7 +94,6 @@ export function useScheduleCache() {
 		const timestamp = Date.now();
 		const { weekId, weekName } = parseWeekInfo(fileName);
 
-		// Создаем объект новой недели
 		const newWeek: WeekSchedule = {
 			weekId,
 			weekName,
@@ -105,39 +101,31 @@ export function useScheduleCache() {
 			schedule: scheduleData
 		};
 
-		// Обновляем коллекцию недель, сохраняя существующие недели
 		setWeekCollection(current => {
-			// Получаем текущую коллекцию или создаем новую, если она не существует
 			const safeCollection = current || {
 				activeWeekId: null,
 				weeks: []
 			};
 
-			// Проверяем, существует ли уже неделя с таким ID
 			const existingIndex = safeCollection.weeks.findIndex(w => w.weekId === weekId);
 
 			let updatedWeeks: WeekSchedule[];
 			if (existingIndex >= 0) {
-				// Если неделя существует, обновляем её, сохраняя остальные
 				updatedWeeks = safeCollection.weeks.map((week, index) =>
 					index === existingIndex ? newWeek : week
 				);
 			} else {
-				// Если это новая неделя, добавляем её к существующим
 				updatedWeeks = [...safeCollection.weeks, newWeek];
 			}
 
-			// Сортируем недели по дате загрузки (новые сверху)
 			const sortedWeeks = updatedWeeks.sort((a, b) => b.uploadDate - a.uploadDate);
 
-			// Возвращаем обновленную коллекцию
 			return {
-				activeWeekId: weekId, // Устанавливаем новую неделю как активную
+				activeWeekId: weekId,
 				weeks: sortedWeeks
 			};
 		});
 
-		// Обновляем обычный кэш для синхронизации
 		setCache({
 			data: scheduleData,
 			metadata: {
@@ -157,16 +145,14 @@ export function useScheduleCache() {
 
 	const setActiveWeek = (weekId: string) => {
 		setWeekCollection(current => {
-			// Если current null, создаем базовую структуру
 			const safeCollection: ScheduleCollection = current || {
 				activeWeekId: null,
 				weeks: []
 			};
 
-			// Возвращаем новый объект с обязательными полями
 			return {
 				activeWeekId: weekId,
-				weeks: safeCollection.weeks // Сохраняем существующие недели
+				weeks: safeCollection.weeks
 			};
 		});
 	};

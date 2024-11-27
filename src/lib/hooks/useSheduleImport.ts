@@ -4,23 +4,20 @@ import { useScheduleCache } from './useScheduleCache';
 import { ParsedSchedule } from '@/lib/types/shedule';
 import { CACHE_CONSTANTS } from '@/lib/constants/cache';
 import { useNotification } from '@/lib/context/NotificationContext';
+import { validateScheduleExcel } from '@/lib/utils/validateScheduleExcel';
 
 export function useScheduleImport() {
 	const { showNotification } = useNotification();
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [parsedData, setParsedData] = useState<ParsedSchedule | null>(null);
-	const { cachedSchedule, metadata, clearCache, saveWeekSchedule } = useScheduleCache();
+	const { cachedSchedule, metadata, saveWeekSchedule } = useScheduleCache();
 
 	useEffect(() => {
-		console.log('Current metadata state:', metadata);
-		console.log('Current cachedSchedule state:', !!cachedSchedule);
-
 		if (!parsedData && cachedSchedule && metadata) {
 			setParsedData(cachedSchedule);
 			const lastUpdate = new Date(metadata.lastUpdated);
 
-			// Проверяем валидность даты перед форматированием
 			if (!isNaN(lastUpdate.getTime())) {
 				showNotification(
 					`Загружено расписание от ${lastUpdate.toLocaleDateString('ru-RU')}`,
@@ -39,19 +36,25 @@ export function useScheduleImport() {
 			}
 		}
 	}, [cachedSchedule, parsedData, metadata]);
+
+
 	const handleFileImport = async (file: File): Promise<ParsedSchedule | null> => {
 		setIsLoading(true);
 		setError(null);
 
 		try {
+			const validation = await validateScheduleExcel(file);
+
+			if (!validation.isValid) {
+				throw new Error(validation.error || 'Неверный формат файла расписания');
+			}
+
 			const data = await parseExcelFile(file);
 			setParsedData(data);
 
-			// Сразу сохраняем данные в weekSchedule
 			if (data) {
 				saveWeekSchedule(file.name, data);
 
-				// Показываем уведомление об успешной загрузке
 				showNotification(
 					`Расписание успешно загружено ${new Date().toLocaleDateString('ru-RU')}`,
 					'success'
@@ -80,7 +83,6 @@ export function useScheduleImport() {
 		const lastUpdate = new Date(metadata.lastUpdated);
 		const isFresh = Date.now() - lastUpdate.getTime() < CACHE_CONSTANTS.LIFETIME.SCHEDULE;
 
-		// Показываем предупреждение только если данные устарели
 		if (!isFresh) {
 			showNotification(
 				'Рекомендуется обновить расписание',
