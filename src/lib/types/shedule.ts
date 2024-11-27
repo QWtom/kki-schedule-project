@@ -1,3 +1,5 @@
+import { CacheMetadata } from "./cache";
+
 // lib/types/schedule.ts
 export type LessonType = 'LECTURE' | 'PRACTICE' | 'LAB' | 'OTHER';
 

@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { v4 as uuidv4 } from 'uuid';
-import { ParsedSchedule, Lesson, DAYS_OF_WEEK, LessonType } from '@/lib/types/shedule';
+import { ParsedSchedule, DAYS_OF_WEEK } from '@/lib/types/shedule';
 import { parseTimeSlot } from '@/shared/lib/parseTimeSlot';
 import { parseSubjectTeacher } from '@/shared/lib/parseSubjectTeacher';
 import { detectLessonType } from '@/shared/lib/detectLessonType';
