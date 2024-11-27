@@ -4,6 +4,6 @@ export const CACHE_CONSTANTS = {
 	},
 	VERSION: '1.0.0',
 	LIFETIME: {
-		SCHEDULE: 24 * 60 * 60 * 1000,
+		SCHEDULE: 7 * 24 * 60 * 60 * 1000,
 	},
 } as const;

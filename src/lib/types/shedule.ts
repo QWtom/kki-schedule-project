@@ -55,4 +55,14 @@ export interface Group {
 	subgroup: number;
 }
 
-// ... остальные типы остаются без изменений
+export interface WeekSchedule {
+	weekId: string;
+	weekName: string;
+	uploadDate: number;
+	schedule: ParsedSchedule;
+}
+
+export interface ScheduleCollection {
+	activeWeekId: string | null;
+	weeks: WeekSchedule[];
+}

@@ -19,8 +19,10 @@ import { GroupSelector } from '@/components/schedule/GroupSelector';
 import { LessonCard } from '@/components/schedule/LessonCard';
 import { useScheduleImport } from '@/lib/hooks/useSheduleImport';
 import { getCurrentDayId, getGroupDaySchedule } from '@/lib/utils/getUtilsParser';
-import { CourseSelector } from '@/components/schedule/CourseSelector/CourseSelector';
+import { CourseSelector } from '@/components/schedule/CourseSelector';
 import { CachedOutlined } from '@mui/icons-material';
+import { WeekSelector } from '@/components/schedule/WeekSelector';
+import { useScheduleCache } from '@/lib/hooks/useScheduleCache';
 
 export default function Home() {
     const [selectedDay, setSelectedDay] = useState(getCurrentDayId());
@@ -33,8 +35,17 @@ export default function Home() {
         parsedData,
         handleFileImport,
         checkDataFreshness,
-        resetError
+        resetError,
     } = useScheduleImport();
+
+    const {
+        weeks,
+        activeWeek,
+        saveWeekSchedule,
+        setActiveWeek
+    } = useScheduleCache();
+
+    const currentParsedData = activeWeek?.schedule || parsedData;
 
     const { isFresh, lastUpdate } = checkDataFreshness();
 
@@ -53,14 +64,18 @@ export default function Home() {
         const file = event.target.files?.[0];
         if (file) {
             try {
-                await handleFileImport(file);
+                const importedData = await handleFileImport(file);
+
+                if (importedData) {
+                    saveWeekSchedule(file.name, importedData);
+                }
             } catch (error) {
                 console.error('File import failed:', error);
             }
         }
     };
 
-    const filteredGroups = parsedData?.groups.filter(g => {
+    const filteredGroups = currentParsedData?.groups.filter(g => {
         if (!selectedCourse) return true;
         const [courseStr, subgroupStr] = selectedCourse.replace(')', '').split('(');
         const course = parseInt(courseStr);
@@ -73,15 +88,13 @@ export default function Home() {
         setSelectedGroup('');
     };
 
-    const currentSchedule = selectedGroup && parsedData
-        ? getGroupDaySchedule(parsedData, selectedGroup, selectedDay)
+    const currentSchedule = selectedGroup && currentParsedData
+        ? getGroupDaySchedule(currentParsedData, selectedGroup, selectedDay)
         : [];
-
     return (
         <Container maxWidth="lg">
             <Box sx={{ py: 6, minHeight: '100vh' }}>
                 {/* ... Header section ... */}
-
                 <Stack spacing={4}>
                     <Paper
                         elevation={0}
@@ -108,6 +121,14 @@ export default function Home() {
                                         </Typography>
                                     )}
                                 </Box>
+                            )}
+                            {weeks.length > 0 && (
+                                <WeekSelector
+                                    weeks={weeks}
+                                    activeWeekId={activeWeek?.weekId || null}
+                                    onWeekChange={setActiveWeek}
+                                    disabled={isLoading}
+                                />
                             )}
                             <Box>
                                 <input
@@ -147,10 +168,10 @@ export default function Home() {
                             {/* Group Select */}
                             <Stack spacing={2}>
                                 <CourseSelector
-                                    groups={parsedData?.groups || []}
+                                    groups={currentParsedData?.groups || []}
                                     selectedCourse={selectedCourse}
                                     onCourseChange={handleCourseChange}
-                                    disabled={!parsedData || isLoading}
+                                    disabled={!currentParsedData || isLoading}
                                 />
 
                                 <GroupSelector

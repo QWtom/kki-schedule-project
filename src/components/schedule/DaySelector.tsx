@@ -1,6 +1,6 @@
 'use client'
 
-import { ButtonGroup, Button, Stack, Typography, Box, alpha } from '@mui/material';
+import { ButtonGroup, Button, Stack, Typography, Box, alpha, useTheme, useMediaQuery } from '@mui/material';
 
 interface Day {
 	id: string;
@@ -23,13 +23,19 @@ interface DaySelectorProps {
 }
 
 export const DaySelector = ({ selectedDay, onDaySelect }: DaySelectorProps) => {
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
 	return (
 		<Box
 			sx={{
 				overflowX: 'auto',
 				pb: 1,
+				msOverflowStyle: 'none', // Для IE и Edge
+				scrollbarWidth: 'thin', // Для Firefox
 				'::-webkit-scrollbar': {
 					height: 6,
+					display: isMobile ? 'none' : 'block', // Скрываем скроллбар на мобильных
 				},
 				'::-webkit-scrollbar-track': {
 					background: alpha('#1E293B', 0.3),
@@ -46,15 +52,18 @@ export const DaySelector = ({ selectedDay, onDaySelect }: DaySelectorProps) => {
 		>
 			<ButtonGroup
 				variant="outlined"
-				sx={{ minWidth: 'fit-content' }}
+				sx={{
+					minWidth: 'fit-content',
+					gap: isMobile ? 1 : 0 // Добавляем отступы между кнопками на мобильных
+				}}
 			>
 				{DAYS.map((day) => (
 					<Button
 						key={day.id}
 						onClick={() => onDaySelect(day.id)}
 						sx={{
-							px: 3,
-							minWidth: 120,
+							px: isMobile ? 2 : 3,
+							minWidth: isMobile ? 'auto' : 120,
 							backgroundColor: selectedDay === day.id ?
 								alpha('#3B82F6', 0.1) : 'transparent',
 							borderColor: selectedDay === day.id ?
@@ -63,15 +72,27 @@ export const DaySelector = ({ selectedDay, onDaySelect }: DaySelectorProps) => {
 								borderColor: '#3B82F6',
 								backgroundColor: alpha('#3B82F6', 0.05),
 							},
+							...(isMobile && {
+								borderRadius: '8px !important', // Принудительно задаем скругление для мобильных
+								border: `1px solid ${selectedDay === day.id ? '#3B82F6' : alpha('#94A3B8', 0.2)}`,
+								'&:not(:last-of-type)': {
+									marginRight: 0
+								}
+							})
 						}}
 					>
 						<Stack alignItems="center" spacing={0.5}>
-							<Typography variant="caption" color="text.secondary">
+							<Typography
+								variant="caption"
+								color="text.secondary"
+								sx={{ display: isMobile ? 'block' : 'none' }}
+							>
 								{day.shortName}
 							</Typography>
 							<Typography
-								variant="body2"
+								variant={isMobile ? "caption" : "body2"}
 								color={selectedDay === day.id ? 'primary.main' : 'text.primary'}
+								sx={{ display: isMobile ? 'none' : 'block' }}
 							>
 								{day.name}
 							</Typography>
