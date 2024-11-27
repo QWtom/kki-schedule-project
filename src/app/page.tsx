@@ -100,8 +100,11 @@ export default function Home() {
     const currentSchedule = selectedGroup && currentParsedData
         ? getGroupDaySchedule(currentParsedData, selectedGroup, selectedDay)
         : [];
+
+
     return (
         <Container maxWidth="lg">
+            <Typography fontSize={52} fontWeight={700} mt={5}>Расписание ККИ "Айаар уустар"</Typography>
             <Box sx={{ py: 6, minHeight: '100vh' }}>
                 {/* ... Header section ... */}
                 <Stack spacing={4}>
@@ -154,6 +157,7 @@ export default function Home() {
                                         component="span"
                                         startIcon={isLoading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
                                         disabled={isLoading}
+                                        sx={{ marginBottom: '2px' }}
                                     >
                                         {isLoading ? 'Загрузка...' : 'Загрузить расписание'}
                                     </Button>

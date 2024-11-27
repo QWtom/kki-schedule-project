@@ -1,4 +1,3 @@
-// src/theme/index.ts
 import { createTheme } from '@mui/material/styles';
 
 export const theme = createTheme({
@@ -11,7 +10,7 @@ export const theme = createTheme({
 		},
 		background: {
 			default: '#0F172A', // Dark blue background
-			paper: '#1E293B',   // Slightly lighter for cards
+			paper: '#1E293B',
 		},
 		text: {
 			primary: '#F8FAFC',
@@ -20,7 +19,7 @@ export const theme = createTheme({
 		divider: 'rgba(148, 163, 184, 0.12)',
 	},
 	typography: {
-		fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+		fontFamily: "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
 		h4: {
 			fontWeight: 700,
 			letterSpacing: '-0.02em',
@@ -28,9 +27,27 @@ export const theme = createTheme({
 		h6: {
 			fontWeight: 600,
 			letterSpacing: '-0.01em',
+			lineHeight: 1.3,
+		},
+		body1: {
+			fontWeight: 400,
+			fontSize: '1rem',
+			lineHeight: 1.5,
+		},
+		body2: {
+			fontWeight: 400,
+			fontSize: '0.875rem',
+			lineHeight: 1.43,
 		},
 		button: {
-			fontWeight: 500,
+			fontWeight: 600,
+			letterSpacing: '0.02em',
+		},
+		caption: {
+			fontWeight: 400,
+			fontSize: '0.75rem',
+			lineHeight: 1.5,
+			letterSpacing: '0.01em',
 		},
 	},
 	components: {
@@ -51,6 +68,7 @@ export const theme = createTheme({
 					borderRadius: 12,
 					padding: '10px 20px',
 					fontSize: '0.95rem',
+					fontWeight: 600,
 				},
 				contained: {
 					background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
