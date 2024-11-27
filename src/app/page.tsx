@@ -104,8 +104,8 @@ export default function Home() {
 
     return (
         <Container maxWidth="lg">
-            <Typography fontSize={52} fontWeight={700} mt={5}>Расписание ККИ "Айаар уустар"</Typography>
-            <Box sx={{ py: 6, minHeight: '100vh' }}>
+            <Typography fontSize={36} fontWeight={700} mt={4}>Расписание</Typography>
+            <Box sx={{ py: 4, minHeight: '100vh' }}>
                 {/* ... Header section ... */}
                 <Stack spacing={4}>
                     <Paper
