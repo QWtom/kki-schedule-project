@@ -50,15 +50,24 @@ export default function Home() {
     const { isFresh, lastUpdate } = checkDataFreshness();
 
     const formatLastUpdate = (date: Date | null) => {
-        if (!date) return 'Нет данных';
-        return new Intl.DateTimeFormat('ru-RU', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }).format(date);
-    }
+        if (!date || isNaN(date.getTime())) {
+            console.log('Invalid date in formatLastUpdate:', date);
+            return 'Нет данных';
+        }
+
+        try {
+            return new Intl.DateTimeFormat('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(date);
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'Ошибка формата даты';
+        }
+    };
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -115,7 +124,7 @@ export default function Home() {
                                             sx={{ cursor: 'help' }}
                                         />
                                     </Tooltip>
-                                    {!isFresh && (
+                                    {!isFresh && lastUpdate && (
                                         <Typography variant="caption" color="warning.main">
                                             Рекомендуется обновить данные
                                         </Typography>
