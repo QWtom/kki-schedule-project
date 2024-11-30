@@ -106,7 +106,6 @@ export default function Home() {
         <Container maxWidth="lg">
             <Typography fontSize={36} fontWeight={700} mt={4}>Расписание</Typography>
             <Box sx={{ py: 4, minHeight: '100vh' }}>
-                {/* ... Header section ... */}
                 <Stack spacing={4}>
                     <Paper
                         elevation={0}
@@ -117,8 +116,6 @@ export default function Home() {
                         }}
                     >
                         <Stack spacing={3}>
-                            {/* File Upload */}
-                            {/* Индикатор кэшированных данных */}
                             {parsedData && (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <Tooltip title={`Последнее обновление: ${formatLastUpdate(lastUpdate)}`}>
@@ -178,7 +175,6 @@ export default function Home() {
                                 </Alert>
                             )}
 
-                            {/* Group Select */}
                             <Stack spacing={2}>
                                 <CourseSelector
                                     groups={currentParsedData?.groups || []}
@@ -197,7 +193,6 @@ export default function Home() {
                         </Stack>
                     </Paper>
 
-                    {/* Schedule Display */}
                     {selectedGroup && parsedData && (
                         <Paper
                             elevation={0}
