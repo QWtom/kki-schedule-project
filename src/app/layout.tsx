@@ -1,12 +1,6 @@
 'use client'
 
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import { theme } from '@/theme';
-import { Inter } from 'next/font/google';
-import { Space_Grotesk } from 'next/font/google';
-import { Onest } from 'next/font/google';
-import { NotificationProvider } from '@/lib/context/NotificationContext';
-
+import { Providers } from '@/components/Providers';
 import { Nunito } from 'next/font/google';
 
 const nunito = Nunito({
@@ -24,12 +18,7 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={nunito.className}>
-        <ThemeProvider theme={theme}>
-          <NotificationProvider>
-            <CssBaseline />
-            {children}
-          </NotificationProvider>
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

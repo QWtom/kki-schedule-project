@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Container,
     Typography,
@@ -23,8 +23,10 @@ import { CourseSelector } from '@/components/schedule/CourseSelector';
 import { CachedOutlined } from '@mui/icons-material';
 import { WeekSelector } from '@/components/schedule/WeekSelector';
 import { useScheduleCache } from '@/lib/hooks/useScheduleCache';
+import { useNotification } from '@/lib/context/NotificationContext';
 
 export default function Home() {
+    const { showNotification } = useNotification();
     const [selectedDay, setSelectedDay] = useState(getCurrentDayId());
     const [selectedGroup, setSelectedGroup] = useState('');
     const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
@@ -44,6 +46,18 @@ export default function Home() {
         saveWeekSchedule,
         setActiveWeek
     } = useScheduleCache();
+
+    useEffect(() => {
+        console.log('Schedule Import State:', {
+            isLoading,
+            error,
+            hasParsedData: !!parsedData
+        });
+        console.log('Schedule Cache State:', {
+            weeksCount: weeks.length,
+            hasActiveWeek: !!activeWeek
+        });
+    }, [isLoading, error, parsedData, weeks, activeWeek]);
 
     const currentParsedData = activeWeek?.schedule || parsedData;
 
@@ -74,12 +88,14 @@ export default function Home() {
         if (file) {
             try {
                 const importedData = await handleFileImport(file);
-
                 if (importedData) {
                     saveWeekSchedule(file.name, importedData);
+                    // Добавим явное уведомление о сохранении недели
+                    showNotification(`Неделя "${file.name}" сохранена`, 'success');
                 }
             } catch (error) {
                 console.error('File import failed:', error);
+                showNotification('Ошибка при импорте файла', 'error');
             }
         }
     };
@@ -105,7 +121,7 @@ export default function Home() {
     return (
         <Container maxWidth="lg">
             <Typography fontSize={36} fontWeight={700} mt={4}>Расписание</Typography>
-            {/* <Box sx={{ py: 4, minHeight: '100vh' }}>
+            <Box sx={{ py: 4, minHeight: '100vh' }}>
                 <Stack spacing={4}>
                     <Paper
                         elevation={0}
@@ -237,8 +253,7 @@ export default function Home() {
                         </Paper>
                     )}
                 </Stack>
-            </Box> */}
-            Технические проблемы
+            </Box>
         </Container>
     );
 }
