@@ -32,13 +32,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 	}, [queue, open]);
 
 	const showNotification = useCallback((message: string, type: NotificationType = 'info') => {
-		const newMessage: NotificationMessage = {
-			id: Date.now(),
-			message,
-			type
-		};
+		// const newMessage: NotificationMessage = {
+		// 	id: Date.now(),
+		// 	message,
+		// 	type
+		// };
 
-		setQueue(prev => [...prev, newMessage]);
+		// setQueue(prev => [...prev, newMessage]);
 	}, []);
 
 	const handleClose = useCallback((event?: React.SyntheticEvent | Event, reason?: string) => {

@@ -105,7 +105,7 @@ export default function Home() {
     return (
         <Container maxWidth="lg">
             <Typography fontSize={36} fontWeight={700} mt={4}>Расписание</Typography>
-            <Box sx={{ py: 4, minHeight: '100vh' }}>
+            {/* <Box sx={{ py: 4, minHeight: '100vh' }}>
                 <Stack spacing={4}>
                     <Paper
                         elevation={0}
@@ -237,7 +237,8 @@ export default function Home() {
                         </Paper>
                     )}
                 </Stack>
-            </Box>
+            </Box> */}
+            Технические проблемы
         </Container>
     );
 }
