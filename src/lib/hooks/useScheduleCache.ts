@@ -23,7 +23,6 @@ export function useScheduleCache() {
 
 	const saveSchedule = (scheduleData: ParsedSchedule) => {
 		const timestamp = Date.now();
-		console.log('Saving schedule with timestamp:', timestamp);
 
 		const cacheEntry: ScheduleCache = {
 			data: scheduleData,
