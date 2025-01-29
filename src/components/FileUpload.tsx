@@ -20,7 +20,6 @@ export const FileUpload = ({ onFileUpload }: FileUploadProps) => {
 		try {
 			setIsLoading(true);
 			setError(null);
-			console.log('Starting file upload:', file.name);
 			await onFileUpload(file);
 		} catch (err) {
 			console.error('Error uploading file:', err);

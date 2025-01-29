@@ -1,69 +1,40 @@
-export const parseTimeSlot = (timeString: string) => {
-	console.log('Initial time string:', timeString);
+export const parseTimeSlot = (timeCell: string) => {
+	if (!timeCell) return null;
 
-	// Шаг 1: Нормализация строки
-	// Сначала заменяем множественные пробелы одним пробелом и убираем пробелы вокруг дефиса
-	let cleanTimeString = timeString
-		.replace(/\s+/g, ' ')               // Множественные пробелы -> один пробел
-		.replace(/\s*-\s*/g, '-')           // Убираем пробелы вокруг дефиса
-		.replace(/-+$/, '')                 // Убираем дефисы в конце
-		.trim();
+	const normalized = timeCell
+		.replace(/\s+/g, ' ')
+		.trim()
+		.replace(/[-–—]/g, '-')
+		.replace(/\s*-\s*/g, '-');
 
-	console.log('After normalization:', cleanTimeString);
+	const match = normalized.match(/^(\d{1,2})(?::|\s*)?(\d{0,2})-(\d{1,2})(?::|\s*)?(\d{0,2})$/);
 
-	// Шаг 2: Разделение на компоненты времени
-	const timeParts = cleanTimeString.split('-');
-	if (timeParts.length !== 2) {
-		console.log('Invalid time format - expected two parts:', timeParts);
+	if (!match) {
+		console.warn(`Invalid time format: ${timeCell} (normalized: ${normalized})`);
 		return null;
 	}
 
-	const [startTime, endTime] = timeParts;
+	const [_, startHour, startMinute = '00', endHour, endMinute = '00'] = match;
 
-	const parseTimeComponent = (timeStr: string) => {
-		const cleaned = timeStr.trim().replace(/[^\d:]/g, '');
-		console.log('Parsing time component:', cleaned);
-
-		let hours: number;
-		let minutes: number;
-
-		if (cleaned.includes(':')) {
-			[hours, minutes] = cleaned.split(':').map(Number);
-		} else if (cleaned.length === 4) {
-			hours = parseInt(cleaned.substring(0, 2));
-			minutes = parseInt(cleaned.substring(2));
-		} else if (cleaned.length === 3) {
-			hours = parseInt(cleaned.substring(0, 1));
-			minutes = parseInt(cleaned.substring(1));
-		} else {
-			console.log('Unrecognized time format:', cleaned);
-			return null;
-		}
-
-		if (isNaN(hours) || isNaN(minutes) ||
-			hours < 0 || hours > 23 ||
-			minutes < 0 || minutes > 59) {
-			console.log('Invalid time values:', { hours, minutes });
-			return null;
-		}
-
-		return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-	};
-
-	const parsedStart = parseTimeComponent(startTime);
-	const parsedEnd = parseTimeComponent(endTime);
-
-	if (!parsedStart || !parsedEnd) {
-		console.log('Failed to parse time components');
+	if (parseInt(startHour) > 23 || parseInt(endHour) > 23 ||
+		parseInt(startMinute) > 59 || parseInt(endMinute) > 59) {
+		console.warn(`Invalid time values: ${timeCell}`);
 		return null;
 	}
 
-	const result = {
-		start: parsedStart,
-		end: parsedEnd,
-		formatted: `${parsedStart}-${parsedEnd}`
-	};
+	const start = `${startHour.padStart(2, '0')}:${startMinute.padEnd(2, '0')}`;
+	const end = `${endHour.padStart(2, '0')}:${endMinute.padEnd(2, '0')}`;
 
-	console.log('Successfully parsed time:', result);
-	return result;
+	return {
+		start,
+		end,
+		formatted: `${start}-${end}`
+	};
 };
+
+// // Тесты
+// console.log(parseTimeSlot('8:00-9:20'));           // Обычный формат
+// console.log(parseTimeSlot('9:30-     10:50'));     // Много пробелов
+// console.log(parseTimeSlot('8:00–9:20'));           // Другой тип дефиса
+// console.log(parseTimeSlot('800-920'));             // Без двоеточия
+// console.log(parseTimeSlot('8:00 - 9:20'));         // Пробелы вокруг дефиса

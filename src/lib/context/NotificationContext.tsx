@@ -23,11 +23,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 	const [currentMessage, setCurrentMessage] = useState<NotificationMessage | null>(null);
 
 	const processQueue = useCallback(() => {
-		console.log('Processing queue:', queue); // Отладочная информация
 		if (queue.length > 0 && !open) {
 			const message = queue[0];
 			if (message) {
-				console.log('Setting message:', message);
 				setCurrentMessage(message);
 				setOpen(true);
 				setQueue(prev => prev.slice(1));

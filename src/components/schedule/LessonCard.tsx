@@ -32,7 +32,6 @@ export const LessonCard = ({ lesson, index }: LessonCardProps) => {
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const [expanded, setExpanded] = useState(!isMobile);
 
-	// Общие стили для карточки
 	const cardStyles = {
 		p: isMobile ? 2 : 3,
 		background: alpha('#1E293B', 0.6),
@@ -48,7 +47,6 @@ export const LessonCard = ({ lesson, index }: LessonCardProps) => {
 		<Fade in timeout={300} style={{ transitionDelay: `${index * 50}ms` }}>
 			<Paper elevation={0} sx={cardStyles}>
 				<Stack spacing={isMobile ? 1.5 : 2}>
-					{/* Верхняя часть карточки */}
 					<Box sx={{
 						display: 'flex',
 						justifyContent: 'space-between',
