@@ -7,6 +7,7 @@ import { detectLessonType } from '@/shared/lib/detectLessonType';
 import { parseCourseInfo } from '@/shared/lib/parseCourseInfo';
 
 export const parseExcelFile = async (file: File): Promise<ParsedSchedule> => {
+
 	const data: ParsedSchedule = {
 		groups: [],
 		schedule: {},
@@ -17,7 +18,6 @@ export const parseExcelFile = async (file: File): Promise<ParsedSchedule> => {
 		const workbook = XLSX.read(buffer, { type: 'array' });
 
 		for (const sheetName of workbook.SheetNames) {
-			console.log(`Processing sheet: ${sheetName}`);
 
 			const courseInfo = parseCourseInfo(sheetName);
 			if (!courseInfo) {
@@ -38,7 +38,6 @@ export const parseExcelFile = async (file: File): Promise<ParsedSchedule> => {
 				const row = jsonData[i];
 				if (row && row[1] &&
 					row[1].toString().trim().toLowerCase() === 'время') {
-					console.log('Found time row at index:', i);
 					groupsRowIndex = i;
 					break;
 				}
@@ -54,7 +53,6 @@ export const parseExcelFile = async (file: File): Promise<ParsedSchedule> => {
 				const groupName = groupsRow[i];
 				if (groupName && typeof groupName === 'string' && groupName.trim()) {
 					const groupId = uuidv4();
-					console.log(`Found group: ${groupName.trim()}`);
 					data.groups.push({
 						id: groupId,
 						name: groupName.trim(),
@@ -68,24 +66,25 @@ export const parseExcelFile = async (file: File): Promise<ParsedSchedule> => {
 			let currentDay = '';
 			for (let rowIndex = groupsRowIndex + 1; rowIndex < jsonData.length; rowIndex++) {
 				const row = jsonData[rowIndex];
-				if (!row || !row.length) continue;
+				if (!row || !row.length) {
+					continue;
+				}
 
 				const firstCell = (row[0] || '').toString().trim().toUpperCase();
 
 				if (DAYS_OF_WEEK.some(d => d.name === firstCell)) {
 					currentDay = firstCell;
-					console.log(`Processing day: ${currentDay}`);
-					continue;
 				}
 
 				const timeCell = row[1]?.toString().trim();
-				console.log(`Processing time slot: ${timeCell}`);
+				if (!timeCell) {
+					continue;
+				}
 
-				if (!timeCell) continue;
 
 				const timeSlot = parseTimeSlot(timeCell);
 				if (!timeSlot) {
-					console.warn(`Invalid time slot: ${timeCell}`);
+					console.warn(`Invalid time slot at row ${rowIndex}:`, timeCell);
 					continue;
 				}
 
@@ -121,7 +120,6 @@ export const parseExcelFile = async (file: File): Promise<ParsedSchedule> => {
 							type: detectLessonType(subject)
 						};
 
-						console.log(`Adding lesson: ${JSON.stringify(lessonEntry)}`);
 						data.schedule[group.id][currentDay].push(lessonEntry);
 					}
 				});

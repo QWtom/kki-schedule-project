@@ -20,6 +20,7 @@ const getGroupDaySchedule = (
 	return parsedSchedule.schedule[groupId]?.[dayName] || [];
 };
 
+
 const getCurrentDayId = (): string => {
 	const today = new Date().getDay();
 	return String(today === 0 ? 6 : today);
