@@ -33,7 +33,6 @@
 
 - Node.js 18+
 - PostgreSQL
-- npm или yarn
 
 ### Frontend
 
