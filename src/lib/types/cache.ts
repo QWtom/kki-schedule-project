@@ -21,5 +21,5 @@ export interface CacheEntry<T> {
 }
 
 export type StorageValue<T> = T | null;
-export type ScheduleCache = CacheEntry<ParsedSchedule>;
+export type ScheduleCache = CacheData;
 export type StorageSetValue<T> = (value: T | ((val: T | null) => T)) => void;
