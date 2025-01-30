@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
     Container,
     Typography,
@@ -11,7 +11,8 @@ import {
     alpha,
     Alert,
     CircularProgress,
-    Tooltip
+    Tooltip,
+    debounce
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { DaySelector } from '@/components/schedule/DaySelector';
@@ -83,21 +84,24 @@ export default function Home() {
         }
     };
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            try {
-                const importedData = await handleFileImport(file);
-                if (importedData) {
-                    saveWeekSchedule(file.name, importedData);
-                    showNotification(`Неделя "${file.name}" сохранена`, 'success');
+    const handleFileChange = useMemo(
+        () => debounce(async (event: React.ChangeEvent<HTMLInputElement>) => {
+            const file = event.target.files?.[0];
+            if (file) {
+                try {
+                    const importedData = await handleFileImport(file);
+                    if (importedData) {
+                        saveWeekSchedule(file.name, importedData);
+                        showNotification(`Неделя "${file.name}" сохранена`, 'success');
+                    }
+                } catch (error) {
+                    console.error('File import failed:', error);
+                    showNotification('Ошибка при импорте файла', 'error');
                 }
-            } catch (error) {
-                console.error('File import failed:', error);
-                showNotification('Ошибка при импорте файла', 'error');
             }
-        }
-    };
+        }, 300),
+        [handleFileImport, saveWeekSchedule, showNotification]
+    );
 
     const filteredGroups = currentParsedData?.groups.filter(g => {
         if (!selectedCourse) return true;
