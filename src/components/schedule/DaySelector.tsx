@@ -1,21 +1,7 @@
 'use client'
 
+import { DAYS } from '@/lib/constants/daySelector';
 import { ButtonGroup, Button, Stack, Typography, Box, alpha, useTheme, useMediaQuery } from '@mui/material';
-
-interface Day {
-	id: string;
-	name: string;
-	shortName: string;
-}
-
-const DAYS: Day[] = [
-	{ id: '1', name: 'Понедельник', shortName: 'ПН' },
-	{ id: '2', name: 'Вторник', shortName: 'ВТ' },
-	{ id: '3', name: 'Среда', shortName: 'СР' },
-	{ id: '4', name: 'Четверг', shortName: 'ЧТ' },
-	{ id: '5', name: 'Пятница', shortName: 'ПТ' },
-	{ id: '6', name: 'Суббота', shortName: 'СБ' },
-];
 
 interface DaySelectorProps {
 	selectedDay: string;
@@ -31,11 +17,11 @@ export const DaySelector = ({ selectedDay, onDaySelect }: DaySelectorProps) => {
 			sx={{
 				overflowX: 'auto',
 				pb: 1,
-				msOverflowStyle: 'none', // Для IE и Edge
+				msOverflowStyle: 'none', // Для IE и Edge,
 				scrollbarWidth: 'thin', // Для Firefox
 				'::-webkit-scrollbar': {
 					height: 6,
-					display: isMobile ? 'none' : 'block', // Скрываем скроллбар на мобильных
+					display: isMobile ? 'none' : 'block',
 				},
 				'::-webkit-scrollbar-track': {
 					background: alpha('#1E293B', 0.3),
@@ -54,7 +40,7 @@ export const DaySelector = ({ selectedDay, onDaySelect }: DaySelectorProps) => {
 				variant="outlined"
 				sx={{
 					minWidth: 'fit-content',
-					gap: isMobile ? 1 : 0 // Добавляем отступы между кнопками на мобильных
+					gap: isMobile ? 1 : 0
 				}}
 			>
 				{DAYS.map((day) => (
@@ -73,7 +59,7 @@ export const DaySelector = ({ selectedDay, onDaySelect }: DaySelectorProps) => {
 								backgroundColor: alpha('#3B82F6', 0.05),
 							},
 							...(isMobile && {
-								borderRadius: '8px !important', // Принудительно задаем скругление для мобильных
+								borderRadius: '8px !important',
 								border: `1px solid ${selectedDay === day.id ? '#3B82F6' : alpha('#94A3B8', 0.2)}`,
 								'&:not(:last-of-type)': {
 									marginRight: 0

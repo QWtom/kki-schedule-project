@@ -79,10 +79,8 @@ export const LessonCard = ({ lesson, index }: LessonCardProps) => {
 						</Box>
 					</Box>
 
-					{/* Разделитель */}
 					<Divider sx={{ borderColor: alpha('#94A3B8', 0.1) }} />
 
-					{/* Мобильная версия с возможностью сворачивания */}
 					{isMobile && (
 						<Box
 							onClick={() => setExpanded(!expanded)}
@@ -108,7 +106,6 @@ export const LessonCard = ({ lesson, index }: LessonCardProps) => {
 						</Box>
 					)}
 
-					{/* Детали занятия */}
 					<Collapse in={expanded}>
 						<Stack spacing={1.5}>
 							<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
