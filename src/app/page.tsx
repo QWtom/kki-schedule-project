@@ -48,18 +48,6 @@ export default function Home() {
         setActiveWeek
     } = useScheduleCache();
 
-    // useEffect(() => {
-    //     console.log('Schedule Import State:', {
-    //         isLoading,
-    //         error,
-    //         hasParsedData: !!parsedData
-    //     });
-    //     console.log('Schedule Cache State:', {
-    //         weeksCount: weeks.length,
-    //         hasActiveWeek: !!activeWeek
-    //     });
-    // }, [isLoading, error, parsedData, weeks, activeWeek]);
-
     const currentParsedData = activeWeek?.schedule || parsedData;
 
     const { isFresh, lastUpdate } = checkDataFreshness();
@@ -123,7 +111,7 @@ export default function Home() {
 
     return (
         <Container maxWidth="lg">
-            <Typography fontSize={36} fontWeight={700} mt={4}>Расписание ККИ "Айар уустар"</Typography>
+            <Typography fontSize={36} fontWeight={700} mt={4}>Расписание учебных занятий ККИ "Айар уустар"</Typography>
             <Box sx={{ py: 4, minHeight: '100vh' }}>
                 <Stack spacing={4}>
                     <Paper
