@@ -44,7 +44,7 @@ export function useScheduleImport() {
 		const daysAgo = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
 		const isFresh = timeDiff < CACHE_CONSTANTS.LIFETIME.SCHEDULE;
 
-		if (!isFresh && !isLoading) {
+		if (!isLoading) {
 			showNotificationOnce('Рекомендуется обновить расписание', 'warning');
 		}
 
