@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import {
     Container,
     Typography,
@@ -25,8 +25,14 @@ import { CachedOutlined } from '@mui/icons-material';
 import { WeekSelector } from '@/components/schedule/WeekSelector';
 import { useScheduleCache } from '@/lib/hooks/useScheduleCache';
 import { useNotification } from '@/lib/context/NotificationContext';
-import { FavoriteGroups } from '@/components/schedule/FavoriteGroups';
 import { useFavorites } from '@/lib/hooks/useFavorites';
+import dynamic from 'next/dynamic';
+
+
+const FavoriteGroups = dynamic(
+    () => import('@/components/schedule/FavoriteGroups'),
+    { ssr: false }
+);
 
 export default function Home() {
     const { showNotification } = useNotification();
@@ -34,6 +40,10 @@ export default function Home() {
     const [selectedDay, setSelectedDay] = useState(getCurrentDayId());
     const [selectedGroup, setSelectedGroup] = useState('');
     const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+
+    const courseInitialized = useRef(false);
+    const groupInitialized = useRef(false);
+
 
     const {
         isLoading,
@@ -55,29 +65,34 @@ export default function Home() {
 
     const { isFresh, lastUpdate } = checkDataFreshness();
 
-    // Set default course when data is loaded
     useEffect(() => {
-        if (currentParsedData && !selectedCourse && defaultCourse) {
+        if (
+            currentParsedData &&
+            !courseInitialized.current &&
+            !selectedCourse &&
+            defaultCourse
+        ) {
             setSelectedCourse(defaultCourse);
+            courseInitialized.current = true;
         }
     }, [currentParsedData, defaultCourse, selectedCourse]);
 
-    // Auto-select first favorite group if available
     useEffect(() => {
         if (
             currentParsedData &&
             favoriteGroups.length > 0 &&
             !selectedGroup &&
+            !groupInitialized.current &&
             currentParsedData.groups.some(g => favoriteGroups.includes(g.id))
         ) {
-            // Find first available favorite group
+            // Находим первую доступную избранную группу
             const availableFavorite = currentParsedData.groups.find(g => favoriteGroups.includes(g.id));
             if (availableFavorite) {
                 setSelectedGroup(availableFavorite.id);
+                groupInitialized.current = true;
             }
         }
     }, [currentParsedData, favoriteGroups, selectedGroup]);
-
     const formatLastUpdate = (date: Date | null) => {
         if (!date || isNaN(date.getTime())) {
             console.log('Invalid date in formatLastUpdate:', date);
