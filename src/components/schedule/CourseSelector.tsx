@@ -1,5 +1,4 @@
-'use client'
-
+'use client';
 import React, { useEffect, useState } from 'react';
 import {
 	FormControl,
@@ -22,27 +21,25 @@ interface CourseSelectorProps {
 	disabled?: boolean;
 }
 
-export const CourseSelector: React.FC<CourseSelectorProps> = ({
+export function CourseSelector({
 	groups,
 	selectedCourse,
 	onCourseChange,
 	disabled = false
-}) => {
-	const [isMounted, setIsMounted] = useState(false);
+}: CourseSelectorProps) {
+	const [mounted, setMounted] = useState(false);
 	const { defaultCourse, setDefaultCourse } = useFavorites();
 
 	useEffect(() => {
-		setIsMounted(true);
+		setMounted(true);
 	}, []);
 
-	// Apply default course on component mount if no course is selected
 	useEffect(() => {
-		if (isMounted && !selectedCourse && defaultCourse && !disabled) {
+		if (mounted && !selectedCourse && defaultCourse && !disabled) {
 			onCourseChange(defaultCourse);
 		}
-	}, [isMounted, selectedCourse, defaultCourse, disabled, onCourseChange]);
+	}, [mounted, selectedCourse, defaultCourse, disabled, onCourseChange]);
 
-	// Extract unique courses from groups
 	const uniqueCourses = React.useMemo(() => {
 		const courses = new Set<string>();
 
@@ -93,7 +90,7 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
 					</MenuItem>
 				) : (
 					uniqueCourses.map((courseKey) => {
-						const isDefault = isMounted && courseKey === defaultCourse;
+						const isDefault = courseKey === defaultCourse;
 						const [course, subgroup] = courseKey.replace(')', '').split('(');
 
 						return (
@@ -101,7 +98,7 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
 								<Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
 									<Typography>
 										{course} курс (Подгруппа {subgroup})
-										{isDefault && (
+										{mounted && isDefault && (
 											<Typography
 												component="span"
 												variant="caption"
@@ -112,7 +109,7 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
 											</Typography>
 										)}
 									</Typography>
-									{isMounted && (
+									{mounted && (
 										<Tooltip title={isDefault ? "Установлен по умолчанию" : "Установить по умолчанию"}>
 											<IconButton
 												size="small"
@@ -136,4 +133,6 @@ export const CourseSelector: React.FC<CourseSelectorProps> = ({
 			</Select>
 		</FormControl>
 	);
-};
+}
+
+export default CourseSelector;
