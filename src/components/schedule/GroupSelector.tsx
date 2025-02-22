@@ -1,4 +1,4 @@
-
+'use client';
 import React, { useState, useEffect } from 'react';
 import {
 	FormControl,
@@ -20,18 +20,17 @@ interface GroupSelectorProps {
 	disabled?: boolean;
 }
 
-export const GroupSelector: React.FC<GroupSelectorProps> = ({
+export function GroupSelector({
 	groups,
 	selectedGroup,
 	onChange,
 	disabled = false
-}) => {
-	// Add client-side rendering flag
-	const [isMounted, setIsMounted] = useState(false);
+}: GroupSelectorProps) {
+	const [mounted, setMounted] = useState(false);
 	const { isFavorite, addFavoriteGroup, removeFavoriteGroup } = useFavorites();
 
 	useEffect(() => {
-		setIsMounted(true);
+		setMounted(true);
 	}, []);
 
 	const handleChange = (event: SelectChangeEvent) => {
@@ -40,6 +39,7 @@ export const GroupSelector: React.FC<GroupSelectorProps> = ({
 
 	const toggleFavorite = (groupId: string, e: React.MouseEvent) => {
 		e.stopPropagation();
+
 		if (isFavorite(groupId)) {
 			removeFavoriteGroup(groupId);
 		} else {
@@ -68,7 +68,7 @@ export const GroupSelector: React.FC<GroupSelectorProps> = ({
 						<MenuItem key={group.id} value={group.id}>
 							<Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
 								<Typography>{group.name}</Typography>
-								{isMounted && (
+								{mounted && (
 									<IconButton
 										size="small"
 										onClick={(e) => toggleFavorite(group.id, e)}
@@ -88,4 +88,6 @@ export const GroupSelector: React.FC<GroupSelectorProps> = ({
 			</Select>
 		</FormControl>
 	);
-};
+}
+
+export default GroupSelector;
