@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
     Container,
     Typography,
@@ -25,9 +25,12 @@ import { CachedOutlined } from '@mui/icons-material';
 import { WeekSelector } from '@/components/schedule/WeekSelector';
 import { useScheduleCache } from '@/lib/hooks/useScheduleCache';
 import { useNotification } from '@/lib/context/NotificationContext';
+import { FavoriteGroups } from '@/components/schedule/FavoriteGroups';
+import { useFavorites } from '@/lib/hooks/useFavorites';
 
 export default function Home() {
     const { showNotification } = useNotification();
+    const { favoriteGroups, defaultCourse } = useFavorites();
     const [selectedDay, setSelectedDay] = useState(getCurrentDayId());
     const [selectedGroup, setSelectedGroup] = useState('');
     const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
@@ -51,6 +54,29 @@ export default function Home() {
     const currentParsedData = activeWeek?.schedule || parsedData;
 
     const { isFresh, lastUpdate } = checkDataFreshness();
+
+    // Set default course when data is loaded
+    useEffect(() => {
+        if (currentParsedData && !selectedCourse && defaultCourse) {
+            setSelectedCourse(defaultCourse);
+        }
+    }, [currentParsedData, defaultCourse, selectedCourse]);
+
+    // Auto-select first favorite group if available
+    useEffect(() => {
+        if (
+            currentParsedData &&
+            favoriteGroups.length > 0 &&
+            !selectedGroup &&
+            currentParsedData.groups.some(g => favoriteGroups.includes(g.id))
+        ) {
+            // Find first available favorite group
+            const availableFavorite = currentParsedData.groups.find(g => favoriteGroups.includes(g.id));
+            if (availableFavorite) {
+                setSelectedGroup(availableFavorite.id);
+            }
+        }
+    }, [currentParsedData, favoriteGroups, selectedGroup]);
 
     const formatLastUpdate = (date: Date | null) => {
         if (!date || isNaN(date.getTime())) {
@@ -107,7 +133,6 @@ export default function Home() {
     const currentSchedule = selectedGroup && currentParsedData
         ? getGroupDaySchedule(currentParsedData, selectedGroup, selectedDay)
         : [];
-
 
     return (
         <Container maxWidth="lg">
@@ -182,6 +207,15 @@ export default function Home() {
                                 </Alert>
                             )}
 
+                            {/* Favorite Groups Section */}
+                            {currentParsedData && (
+                                <FavoriteGroups
+                                    groups={currentParsedData.groups}
+                                    onSelectGroup={setSelectedGroup}
+                                    selectedGroup={selectedGroup}
+                                />
+                            )}
+
                             <Stack spacing={2}>
                                 <CourseSelector
                                     groups={currentParsedData?.groups || []}
@@ -248,4 +282,3 @@ export default function Home() {
         </Container>
     );
 }
-
