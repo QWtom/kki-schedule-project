@@ -8,7 +8,7 @@ const AuthSchedule = () => {
 		<Container>
 			<Typography>Вход в расписание</Typography>
 			<Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-
+				
 			</Box>
 		</Container>
 	)

@@ -1,43 +1,93 @@
-'use client'
-
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+'use client';
+import React, { useState, useEffect } from 'react';
+import {
+	FormControl,
+	InputLabel,
+	MenuItem,
+	Select,
+	Typography,
+	Box,
+	IconButton,
+	SelectChangeEvent
+} from '@mui/material';
+import { Star, StarBorder } from '@mui/icons-material';
+import { useFavorites } from '@/lib/hooks/useFavorites';
 
 interface GroupSelectorProps {
-	groups: Array<{
-		id: string;
-		name: string;
-		course: number;
-		subgroup: number;
-	}>;
+	groups: any[];
 	selectedGroup: string;
 	onChange: (groupId: string) => void;
 	disabled?: boolean;
 }
 
-export const GroupSelector = ({
+export function GroupSelector({
 	groups,
 	selectedGroup,
 	onChange,
-	disabled
-}: GroupSelectorProps) => {
+	disabled = false
+}: GroupSelectorProps) {
+	const [mounted, setMounted] = useState(false);
+	const { isFavorite, addFavoriteGroup, removeFavoriteGroup } = useFavorites();
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	const handleChange = (event: SelectChangeEvent) => {
+		onChange(event.target.value);
+	};
+
+	const toggleFavorite = (groupId: string, e: React.MouseEvent) => {
+		e.stopPropagation();
+
+		if (isFavorite(groupId)) {
+			removeFavoriteGroup(groupId);
+		} else {
+			addFavoriteGroup(groupId);
+		}
+	};
+
 	return (
-		<FormControl fullWidth>
-			<InputLabel>Группа</InputLabel>
+		<FormControl fullWidth disabled={disabled}>
+			<InputLabel id="group-select-label">Выберите группу</InputLabel>
 			<Select
+				labelId="group-select-label"
+				id="group-select"
 				value={selectedGroup}
-				label="Группа"
-				onChange={(e) => onChange(e.target.value)}
-				disabled={disabled}
+				label="Выберите группу"
+				onChange={handleChange}
 			>
-				<MenuItem value="">
-					<em>Выберите группу</em>
-				</MenuItem>
-				{groups.map((group) => (
-					<MenuItem key={group.id} value={group.id}>
-						{group.name}
+				{groups.length === 0 ? (
+					<MenuItem value="" disabled>
+						<Typography color="text.secondary">
+							{disabled ? 'Сначала выберите курс' : 'Нет доступных групп'}
+						</Typography>
 					</MenuItem>
-				))}
+				) : (
+					groups.map((group) => (
+						<MenuItem key={group.id} value={group.id}>
+							<Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
+								<Typography>{group.name}</Typography>
+								{mounted && (
+									<IconButton
+										size="small"
+										onClick={(e) => toggleFavorite(group.id, e)}
+										sx={{ ml: 1 }}
+									>
+										{isFavorite(group.id) ? (
+											<Star fontSize="small" color="warning" />
+										) : (
+											<StarBorder fontSize="small" />
+										)}
+									</IconButton>
+								)}
+							</Box>
+						</MenuItem>
+					))
+				)}
 			</Select>
 		</FormControl>
 	);
-};
+}
+
+export default GroupSelector;
