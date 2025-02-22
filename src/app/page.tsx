@@ -21,6 +21,7 @@ import { LessonCard } from '@/components/schedule/LessonCard';
 import { useScheduleImport } from '@/lib/hooks/useSheduleImport';
 import { getCurrentDayId, getGroupDaySchedule } from '@/lib/utils/getUtilsParser';
 import { CourseSelector } from '@/components/schedule/CourseSelector';
+import { FavoriteGroups } from '@/components/schedule/FavoriteGroups';
 import { CachedOutlined } from '@mui/icons-material';
 import { WeekSelector } from '@/components/schedule/WeekSelector';
 import { useScheduleCache } from '@/lib/hooks/useScheduleCache';
@@ -28,11 +29,6 @@ import { useNotification } from '@/lib/context/NotificationContext';
 import { useFavorites } from '@/lib/hooks/useFavorites';
 import dynamic from 'next/dynamic';
 
-
-const FavoriteGroups = dynamic(
-    () => import('@/components/schedule/FavoriteGroups'),
-    { ssr: false }
-);
 
 export default function Home() {
     const { showNotification } = useNotification();
