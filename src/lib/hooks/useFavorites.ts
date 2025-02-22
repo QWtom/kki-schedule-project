@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 
 interface FavoritesState {
@@ -10,19 +12,18 @@ const DEFAULT_FAVORITES: FavoritesState = {
 	defaultCourse: null
 };
 
+const FAVORITES_EVENT_NAME = 'favoritesChanged';
+let favoritesEventEmitter: EventTarget;
 
-let globalFavorites: FavoritesState = DEFAULT_FAVORITES;
-let listeners: (() => void)[] = [];
+if (typeof window !== 'undefined') {
+	favoritesEventEmitter = new EventTarget();
+}
 
-const notifyListeners = () => {
-	listeners.forEach(listener => listener());
-};
-
-const loadFavorites = (): FavoritesState => {
+const loadFavoritesFromStorage = (): FavoritesState => {
 	if (typeof window === 'undefined') return DEFAULT_FAVORITES;
 
 	try {
-		const stored = localStorage.getItem('favorites');
+		const stored = localStorage.getItem('global_favorites');
 		return stored ? JSON.parse(stored) : DEFAULT_FAVORITES;
 	} catch (e) {
 		console.error('Error loading favorites:', e);
@@ -30,87 +31,98 @@ const loadFavorites = (): FavoritesState => {
 	}
 };
 
-const saveFavorites = (favorites: FavoritesState) => {
+const saveFavoritesToStorage = (favorites: FavoritesState) => {
 	if (typeof window === 'undefined') return;
 
 	try {
-		localStorage.setItem('favorites', JSON.stringify(favorites));
+		localStorage.setItem('global_favorites', JSON.stringify(favorites));
+
+		const event = new CustomEvent(FAVORITES_EVENT_NAME, { detail: favorites });
+		favoritesEventEmitter.dispatchEvent(event);
 	} catch (e) {
 		console.error('Error saving favorites:', e);
 	}
 };
 
-if (typeof window !== 'undefined') {
-	globalFavorites = loadFavorites();
-}
-
 export function useFavorites() {
-	const [, setUpdateCounter] = useState(0);
+	const [favorites, setFavorites] = useState<FavoritesState>(DEFAULT_FAVORITES);
+	const [isLoaded, setIsLoaded] = useState(false);
 
 	useEffect(() => {
-		const handleChange = () => {
-			setUpdateCounter(c => c + 1);
+		setFavorites(loadFavoritesFromStorage());
+		setIsLoaded(true);
+
+		// Функция обработчик события
+		const handleFavoritesChange = (event: Event) => {
+			const customEvent = event as CustomEvent<FavoritesState>;
+			setFavorites(customEvent.detail);
 		};
 
-		listeners.push(handleChange);
-
-		if (typeof window !== 'undefined' && globalFavorites === DEFAULT_FAVORITES) {
-			globalFavorites = loadFavorites();
-			handleChange();
+		if (typeof window !== 'undefined') {
+			favoritesEventEmitter.addEventListener(
+				FAVORITES_EVENT_NAME,
+				handleFavoritesChange
+			);
 		}
 
 		return () => {
-			listeners = listeners.filter(l => l !== handleChange);
+			if (typeof window !== 'undefined') {
+				favoritesEventEmitter.removeEventListener(
+					FAVORITES_EVENT_NAME,
+					handleFavoritesChange
+				);
+			}
 		};
 	}, []);
 
 	const addFavoriteGroup = (groupId: string) => {
 		if (typeof window === 'undefined') return;
-		if (globalFavorites.favoriteGroups.includes(groupId)) return;
+		if (favorites.favoriteGroups.includes(groupId)) return;
 
-		globalFavorites = {
-			...globalFavorites,
-			favoriteGroups: [...globalFavorites.favoriteGroups, groupId]
+		const newFavorites = {
+			...favorites,
+			favoriteGroups: [...favorites.favoriteGroups, groupId]
 		};
 
-		saveFavorites(globalFavorites);
-		notifyListeners();
+		setFavorites(newFavorites);
+		saveFavoritesToStorage(newFavorites);
 	};
 
 	const removeFavoriteGroup = (groupId: string) => {
 		if (typeof window === 'undefined') return;
 
-		globalFavorites = {
-			...globalFavorites,
-			favoriteGroups: globalFavorites.favoriteGroups.filter(id => id !== groupId)
+		const newFavorites = {
+			...favorites,
+			favoriteGroups: favorites.favoriteGroups.filter(id => id !== groupId)
 		};
 
-		saveFavorites(globalFavorites);
-		notifyListeners();
+		setFavorites(newFavorites);
+		saveFavoritesToStorage(newFavorites);
 	};
 
 	const setDefaultCourse = (courseKey: string | null) => {
 		if (typeof window === 'undefined') return;
 
-		globalFavorites = {
-			...globalFavorites,
+		const newFavorites = {
+			...favorites,
 			defaultCourse: courseKey
 		};
 
-		saveFavorites(globalFavorites);
-		notifyListeners();
+		setFavorites(newFavorites);
+		saveFavoritesToStorage(newFavorites);
 	};
 
 	const isFavorite = (groupId: string) => {
-		return globalFavorites.favoriteGroups.includes(groupId);
+		return favorites.favoriteGroups.includes(groupId);
 	};
 
 	return {
-		favoriteGroups: globalFavorites.favoriteGroups,
-		defaultCourse: globalFavorites.defaultCourse,
+		favoriteGroups: favorites.favoriteGroups,
+		defaultCourse: favorites.defaultCourse,
 		addFavoriteGroup,
 		removeFavoriteGroup,
 		setDefaultCourse,
-		isFavorite
+		isFavorite,
+		isLoaded
 	};
 }
