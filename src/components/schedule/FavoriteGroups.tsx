@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import {
 	Box,
@@ -12,7 +13,7 @@ import {
 	Divider,
 	Chip
 } from '@mui/material';
-import { Star, StarBorder, Delete } from '@mui/icons-material';
+import { Star, Delete } from '@mui/icons-material';
 import { useFavorites } from '@/lib/hooks/useFavorites';
 
 interface FavoriteGroupsProps {
@@ -21,25 +22,16 @@ interface FavoriteGroupsProps {
 	selectedGroup: string;
 }
 
-export const FavoriteGroups: React.FC<FavoriteGroupsProps> = ({
-	groups,
-	onSelectGroup,
-	selectedGroup
-}) => {
-	// To avoid hydration errors, start with empty state and update after mount
-	const [isMounted, setIsMounted] = useState(false);
+export function FavoriteGroups({ groups, onSelectGroup, selectedGroup }: FavoriteGroupsProps) {
+	const [mounted, setMounted] = useState(false);
 	const { favoriteGroups, removeFavoriteGroup } = useFavorites();
 
 	useEffect(() => {
-		setIsMounted(true);
+		setMounted(true);
 	}, []);
 
-	// Only render client-side to avoid hydration mismatch
-	if (!isMounted) {
-		return null; // Return nothing during SSR
-	}
+	if (!mounted) return null;
 
-	// Filter to only show groups that are in favorites
 	const favoriteGroupsData = groups.filter(group =>
 		favoriteGroups.includes(group.id)
 	);
@@ -130,4 +122,6 @@ export const FavoriteGroups: React.FC<FavoriteGroupsProps> = ({
 			</Paper>
 		</Box>
 	);
-};
+}
+
+export default FavoriteGroups;
