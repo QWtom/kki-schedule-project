@@ -24,7 +24,7 @@ export const StatusIndicator = ({ status, lastUpdate }: StatusIndicatorProps) =>
 			case 'loading':
 				return {
 					icon: <CircularProgress size={20} />,
-					message: 'Загрузка расписания...',
+					message: 'Загрузка...',
 					color: 'info.main'
 				};
 			case 'upload':
