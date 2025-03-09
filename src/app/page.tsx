@@ -218,7 +218,6 @@ export default function Home() {
                                 </Alert>
                             )}
 
-                            {/* Favorite Groups Section */}
                             {currentParsedData && (
                                 <FavoriteGroups
                                     groups={currentParsedData.groups}
