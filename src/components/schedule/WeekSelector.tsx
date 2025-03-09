@@ -148,7 +148,7 @@ export const WeekSelector = ({
 				{weeksWithStatus.length === 0 ? (
 					<MenuItem disabled>
 						<Typography color="text.secondary">
-							Нет доступных расписаний
+							Нет расписаний. Загрузите расписание.
 						</Typography>
 					</MenuItem>
 				) : (
