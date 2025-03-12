@@ -81,7 +81,6 @@ export default function Home() {
             !groupInitialized.current &&
             currentParsedData.groups.some(g => favoriteGroups.includes(g.id))
         ) {
-            // Находим первую доступную избранную группу
             const availableFavorite = currentParsedData.groups.find(g => favoriteGroups.includes(g.id));
             if (availableFavorite) {
                 setSelectedGroup(availableFavorite.id);
