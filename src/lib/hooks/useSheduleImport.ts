@@ -1,4 +1,3 @@
-// src/hooks/useScheduleImport.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { parseExcelFile } from '@/lib/utils/excelParser';
 import { useScheduleCache } from './useScheduleCache';

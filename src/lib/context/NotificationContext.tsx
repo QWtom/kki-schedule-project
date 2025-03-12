@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactElement } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Alert, Snackbar } from '@mui/material';
 
 type NotificationType = 'success' | 'info' | 'warning' | 'error';
@@ -46,6 +46,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 	const handleClose = useCallback((event?: React.SyntheticEvent | Event, reason?: string) => {
 		if (reason === 'clickaway') return;
 		setOpen(false);
+		setQueue([])
 	}, []);
 
 	React.useEffect(() => {
