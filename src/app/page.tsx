@@ -146,7 +146,55 @@ export default function Home() {
 
     return (
         <Container maxWidth="lg">
-            <Typography fontSize={36} fontWeight={700} mt={4}>Расписание учебных занятий ГПБОУ РС(Я) "Колледж креативных индустрий - "Айар уустар"</Typography>
+            <Box sx={{ position: 'relative', mb: { xs: 4 } }}>
+                <Typography
+                    variant="h4"
+                    fontWeight={700}
+                    sx={{
+                        fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem', lg: '2.5rem' },
+                        textAlign: { xs: 'center', sm: 'left' },
+                        background: 'linear-gradient(135deg,rgb(228, 229, 230) 0%,rgb(255, 255, 255) 50%,rgb(255, 255, 255) 100%)',
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        textShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+                        position: 'relative',
+                        zIndex: 2,
+                        letterSpacing: '-0.02em',
+                        maxWidth: { xs: '100%', md: '85%', lg: '80%' },
+                        my: 2,
+                        py: { xs: 2, sm: 3 },
+                        px: { xs: 2, sm: 3, md: 0 }
+                    }}
+                >
+                    Расписание учебных занятий ГПБОУ РС(Я) "Колледж креативных индустрий - "Айар уустар"
+                </Typography>
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        left: { xs: 0, md: -20 },
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: { xs: '4px', md: '6px' },
+                        height: { xs: '60%', sm: '70%' },
+                        background: 'linear-gradient(to bottom, #3B82F6, #2563EB)',
+                        borderRadius: '4px',
+                        display: { xs: 'none', sm: 'block' }
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        width: { xs: '100%', sm: '90%', md: '80%' },
+                        height: '1px',
+                        background: 'linear-gradient(to right, #3B82F6, rgba(59, 130, 246, 0.1))',
+                        borderRadius: '4px',
+                        zIndex: 1
+                    }}
+                />
+            </Box>
             <Box sx={{ py: 4, minHeight: '100vh' }}>
                 <Stack spacing={4}>
                     <Paper
