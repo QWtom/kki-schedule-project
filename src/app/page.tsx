@@ -15,6 +15,7 @@ import {
     debounce
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import SyncIcon from '@mui/icons-material/Sync';
 import { DaySelector } from '@/components/schedule/DaySelector';
 import { GroupSelector } from '@/components/schedule/GroupSelector';
 import { LessonCard } from '@/components/schedule/LessonCard';
@@ -27,8 +28,9 @@ import { WeekSelector } from '@/components/schedule/WeekSelector';
 import { useScheduleCache } from '@/lib/hooks/useScheduleCache';
 import { useNotification } from '@/lib/context/NotificationContext';
 import { useFavorites } from '@/lib/hooks/useFavorites';
-import { getGoogleSheet } from './api/googlesheets/googleapi'
-
+import { useAppMode } from '@/lib/hooks/useAppMode';
+import { useGoogleSheets } from '@/lib/hooks/useGoogleSheets';
+import { AppModeToggle } from '@/components/AppModeToggle';
 
 export default function Home() {
     const { showNotification } = useNotification();
@@ -36,31 +38,19 @@ export default function Home() {
     const [selectedDay, setSelectedDay] = useState(getCurrentDayId());
     const [selectedGroup, setSelectedGroup] = useState('');
     const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+    const { isOnlineMode, isOfflineMode } = useAppMode();
+    const { isLoading: isApiLoading, fetchGoogleSheetData, error: apiError } = useGoogleSheets();
 
     const courseInitialized = useRef(false);
     const groupInitialized = useRef(false);
 
-    useEffect(() => {
-        const fetchGoogleSheetData = async () => {
-            try {
-                const data = await getGoogleSheet();
-                console.log(data)
-            } catch (error) {
-                console.error('Ошибка при загрузке данных из Google Sheets:', error);
-                showNotification('Ошибка при загрузке данных из Google Sheets', 'error');
-            }
-        };
-
-        fetchGoogleSheetData();
-    }, []);
-
     const {
-        isLoading,
-        error,
+        isLoading: isImportLoading,
+        error: importError,
         parsedData,
         handleFileImport,
         checkDataFreshness,
-        resetError,
+        resetError: resetImportError,
     } = useScheduleImport();
 
     const {
@@ -71,9 +61,12 @@ export default function Home() {
     } = useScheduleCache();
 
     const currentParsedData = activeWeek?.schedule || parsedData;
+    const isLoading = isImportLoading || isApiLoading;
+    const error = importError || apiError;
 
     const { isFresh, lastUpdate } = checkDataFreshness();
 
+    // Инициализируем выбранный курс из избранного
     useEffect(() => {
         if (
             currentParsedData &&
@@ -86,6 +79,7 @@ export default function Home() {
         }
     }, [currentParsedData, defaultCourse, selectedCourse]);
 
+    // Инициализируем выбранную группу из избранного
     useEffect(() => {
         if (
             currentParsedData &&
@@ -101,6 +95,8 @@ export default function Home() {
             }
         }
     }, [currentParsedData, favoriteGroups, selectedGroup]);
+
+    // Форматирование даты последнего обновления
     const formatLastUpdate = (date: Date | null) => {
         if (!date || isNaN(date.getTime())) {
             console.log('Invalid date in formatLastUpdate:', date);
@@ -121,8 +117,11 @@ export default function Home() {
         }
     };
 
+    // Обработчик загрузки файла (только для оффлайн режима)
     const handleFileChange = useMemo(
         () => debounce(async (event: React.ChangeEvent<HTMLInputElement>) => {
+            if (isOnlineMode) return; // Загрузка файлов только в оффлайн режиме
+
             const file = event.target.files?.[0];
             if (file) {
                 try {
@@ -137,9 +136,10 @@ export default function Home() {
                 }
             }
         }, 300),
-        [handleFileImport, saveWeekSchedule, showNotification]
+        [handleFileImport, saveWeekSchedule, showNotification, isOnlineMode]
     );
 
+    // Фильтрация групп по выбранному курсу
     const filteredGroups = currentParsedData?.groups.filter(g => {
         if (!selectedCourse) return true;
         const [courseStr, subgroupStr] = selectedCourse.replace(')', '').split('(');
@@ -148,17 +148,26 @@ export default function Home() {
         return g.course === course && g.subgroup === subgroup;
     }) || [];
 
+    // Обработчик изменения курса
     const handleCourseChange = (courseKey: string) => {
         setSelectedCourse(courseKey);
         setSelectedGroup('');
     };
 
+    // Получаем расписание для выбранной группы и дня
     const currentSchedule = selectedGroup && currentParsedData
         ? getGroupDaySchedule(currentParsedData, selectedGroup, selectedDay)
         : [];
 
+    // Обработчик синхронизации с Google Sheets API
+    const handleSyncData = () => {
+        if (!isOnlineMode) return;
+        fetchGoogleSheetData();
+    };
+
     return (
         <Container maxWidth="lg">
+            {/* Заголовок */}
             <Box sx={{ position: 'relative', mb: { xs: 4 } }}>
                 <Typography
                     variant="h4"
@@ -208,8 +217,15 @@ export default function Home() {
                     }}
                 />
             </Box>
+            <Typography sx={{ opacity: 0.5 }}>Сайт временно некорректно работает, находится в тех. работе. </Typography>
+            <Typography sx={{ opacity: 0.5 }}>В данный момент идет разработка онлайн режима. Нажмитие на кнопку синхронизировать, затем обновите сайт :)</Typography>
+            <Typography sx={{ opacity: 0.5 }}>За ранее приносим свои извинения</Typography>
             <Box sx={{ py: 4, minHeight: '100vh' }}>
                 <Stack spacing={4}>
+                    {/* Переключатель режима */}
+                    <AppModeToggle />
+
+                    {/* Основной интерфейс */}
                     <Paper
                         elevation={0}
                         sx={{
@@ -219,6 +235,7 @@ export default function Home() {
                         }}
                     >
                         <Stack spacing={3}>
+                            {/* Индикатор свежести данных */}
                             {parsedData && (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <Tooltip title={`Последнее обновление: ${formatLastUpdate(lastUpdate)}`}>
@@ -234,7 +251,9 @@ export default function Home() {
                                     )}
                                 </Box>
                             )}
-                            {weeks.length > 0 && (
+
+                            {/* Выбор недели (только для оффлайн режима) */}
+                            {isOfflineMode && weeks.length > 0 && (
                                 <WeekSelector
                                     weeks={weeks}
                                     activeWeekId={activeWeek?.weekId || null}
@@ -242,32 +261,50 @@ export default function Home() {
                                     disabled={isLoading}
                                 />
                             )}
-                            <Box>
-                                <input
-                                    accept=".xlsx,.xls"
-                                    style={{ display: 'none' }}
-                                    id="upload-file"
-                                    type="file"
-                                    onChange={handleFileChange}
-                                    disabled={isLoading}
-                                />
-                                <label htmlFor="upload-file">
+
+                            {/* Кнопки загрузки и синхронизации */}
+                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                {isOfflineMode && (
+                                    <Box>
+                                        <input
+                                            accept=".xlsx,.xls"
+                                            style={{ display: 'none' }}
+                                            id="upload-file"
+                                            type="file"
+                                            onChange={handleFileChange}
+                                            disabled={isLoading}
+                                        />
+                                        <label htmlFor="upload-file">
+                                            <Button
+                                                variant="contained"
+                                                component="span"
+                                                startIcon={isLoading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
+                                                disabled={isLoading}
+                                                sx={{ marginBottom: '2px' }}
+                                            >
+                                                {isLoading ? 'Загрузка...' : 'Загрузить расписание'}
+                                            </Button>
+                                        </label>
+                                    </Box>
+                                )}
+
+                                {isOnlineMode && (
                                     <Button
                                         variant="contained"
-                                        component="span"
-                                        startIcon={isLoading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
+                                        startIcon={isLoading ? <CircularProgress size={20} /> : <SyncIcon />}
+                                        onClick={handleSyncData}
                                         disabled={isLoading}
-                                        sx={{ marginBottom: '2px' }}
                                     >
-                                        {isLoading ? 'Загрузка...' : 'Загрузить расписание'}
+                                        {isLoading ? 'Синхронизация...' : 'Синхронизировать'}
                                     </Button>
-                                </label>
+                                )}
                             </Box>
 
+                            {/* Отображение ошибок */}
                             {error && (
                                 <Alert
                                     severity="error"
-                                    onClose={resetError}
+                                    onClose={resetImportError}
                                     sx={{
                                         backgroundColor: alpha('#ef4444', 0.1),
                                         color: '#ef4444',
@@ -278,6 +315,7 @@ export default function Home() {
                                 </Alert>
                             )}
 
+                            {/* Избранные группы */}
                             {currentParsedData && (
                                 <FavoriteGroups
                                     groups={currentParsedData.groups}
@@ -286,6 +324,7 @@ export default function Home() {
                                 />
                             )}
 
+                            {/* Выбор курса и группы */}
                             <Stack spacing={2}>
                                 <CourseSelector
                                     groups={currentParsedData?.groups || []}
@@ -304,6 +343,7 @@ export default function Home() {
                         </Stack>
                     </Paper>
 
+                    {/* Отображение расписания */}
                     {selectedGroup && parsedData && (
                         <Paper
                             elevation={0}

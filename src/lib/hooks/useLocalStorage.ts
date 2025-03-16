@@ -1,11 +1,11 @@
+// src/lib/hooks/useLocalStorage.ts
 import { useState, useEffect } from 'react';
-import { StorageValue, StorageSetValue } from '@/lib/types/cache';
 
 export function useLocalStorage<T>(
 	key: string,
 	initialValue: T
-): [StorageValue<T>, StorageSetValue<T>] {
-	const getStoredValue = (): StorageValue<T> => {
+): [T, (value: T | ((val: T) => T)) => void] {
+	const getStoredValue = (): T => {
 		if (typeof window === 'undefined') return initialValue;
 
 		try {
@@ -17,9 +17,9 @@ export function useLocalStorage<T>(
 		}
 	};
 
-	const [storedValue, setStoredValue] = useState<StorageValue<T>>(getStoredValue);
+	const [storedValue, setStoredValue] = useState<T>(getStoredValue);
 
-	const setValue: StorageSetValue<T> = (value) => {
+	const setValue = (value: T | ((val: T) => T)) => {
 		try {
 			const valueToStore = value instanceof Function ? value(storedValue) : value;
 			setStoredValue(valueToStore);

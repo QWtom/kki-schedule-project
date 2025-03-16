@@ -3,6 +3,7 @@ import { ParsedSchedule } from "./shedule";
 export interface CacheMetadata {
   lastUpdated: number;
   version: string;
+  source?: 'api' | 'file';
   hash?: string;
 }
 
@@ -16,10 +17,11 @@ export interface CacheEntry<T> {
   metadata: {
     lastUpdated: number;
     version: string;
+    source?: 'api' | 'file';
     hash?: string;
   };
 }
 
-export type StorageValue<T> = T | null;
 export type ScheduleCache = CacheData;
+export type StorageValue<T> = T | null;
 export type StorageSetValue<T> = (value: T | ((val: T | null) => T)) => void;
