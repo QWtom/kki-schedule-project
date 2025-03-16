@@ -35,3 +35,4 @@ next-env.d.ts
 # netlify
 .netlify
 .env
+google_file.json
