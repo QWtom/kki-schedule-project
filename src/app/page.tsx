@@ -159,11 +159,18 @@ export default function Home() {
         ? getGroupDaySchedule(currentParsedData, selectedGroup, selectedDay)
         : [];
 
-    // Обработчик синхронизации с Google Sheets API
+    // В Home компоненте
+    useEffect(() => {
+        console.log('Current parsed data changed:', currentParsedData ? 'has data' : 'no data');
+    }, [currentParsedData]);
+
     const handleSyncData = async () => {
         if (!isOnlineMode) return;
         await new Promise(resolve => setTimeout(resolve, 2000));
-        fetchGoogleSheetData();
+        fetchGoogleSheetData().then(() => {
+            // Принудительное обновление страницы после успешной синхронизации
+            window.location.reload();
+        });
     };
 
     return (
