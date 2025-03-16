@@ -5,6 +5,7 @@
 [build.environment]
   NODE_VERSION = "18.17.0"
   NEXT_TELEMETRY_DISABLED = "1"
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_API_KEY,NEXT_PUBLIC_API_SERVER_URL"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
