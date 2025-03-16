@@ -72,8 +72,9 @@ export async function GET() {
 				auth: jwtClient,
 				spreadsheetId,
 				ranges,
-				valueRenderOption: 'UNFORMATTED_VALUE',
+				valueRenderOption: 'FORMATTED_VALUE',
 				dateTimeRenderOption: 'FORMATTED_STRING',
+				majorDimension: 'ROWS'
 			});
 
 			// Обработка полученных данных
