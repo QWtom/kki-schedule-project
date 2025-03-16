@@ -13,6 +13,17 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
+[[redirects]]
+  from = "/_next/static/*"
+  to = "/_next/static/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 [functions]
   node_bundler = "esbuild"
   included_files = ["google_file.json"]
