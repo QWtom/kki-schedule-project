@@ -6,7 +6,18 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
-  transpilePackages: []
+  async rewrites() {
+    return [
+      {
+        source: '/api/proxy/googlesheets',
+        destination: 'http://localhost:3001/api/googlesheets',
+      },
+      {
+        source: '/api/health',
+        destination: 'http://localhost:3001/health',
+      }
+    ];
+  }
 };
 
 module.exports = nextConfig;

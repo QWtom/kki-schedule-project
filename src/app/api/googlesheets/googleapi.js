@@ -1,14 +1,23 @@
+// src/app/api/googlesheets/googleapi.js
 export const getGoogleSheet = async () => {
 	try {
+		const API_SERVER_URL = process.env.NEXT_PUBLIC_API_SERVER_URL || 'https://kki-backend-api.onrender.com';
+		const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '6HUy45LlqtYLl46jrNPXgOOHuoeJfacevPdeBN8maEs=';
+
 		const timestamp = Date.now();
 		const randomParam = Math.random().toString(36).substring(7);
-		const url = `/api/googlesheets?t=${timestamp}&r=${randomParam}`;
 
-		console.log(`Fetching from: ${url}`);
+		const url = `${API_SERVER_URL}/api/googlesheets?t=${timestamp}&r=${randomParam}`;
 
-		const response = await fetch(url);
+		console.log(`Fetching from API server: ${url}`);
 
-		console.log(`Response status: ${response.status}`);
+		const response = await fetch(url, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-API-Key': API_KEY
+			}
+		});
 
 		if (!response.ok) {
 			const errorText = await response.text();
@@ -17,13 +26,11 @@ export const getGoogleSheet = async () => {
 		}
 
 		const data = await response.json();
-		console.log('Response data structure:', Object.keys(data));
-		console.log('Metadata:', data.metadata);
-		console.log('Sheets count:', data.data ? Object.keys(data.data).length : 0);
+		console.log('API Response received, sheet names:', data.data ? Object.keys(data.data) : []);
 
 		return data;
 	} catch (error) {
-		console.error('Error details:', error);
+		console.error('Error fetching Google Sheets data:', error);
 		throw error;
 	}
 };
