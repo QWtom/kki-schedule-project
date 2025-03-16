@@ -8,3 +8,10 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+  
+[functions]
+  included_files = ["**/*.json", "**/*.js", "**/*.ts", "**/*.tsx", ".env*"]
+  node_bundler = "esbuild"
+  
+[functions.api]
+  external_node_modules = ["googleapis"]
