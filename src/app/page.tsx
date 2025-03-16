@@ -27,7 +27,7 @@ import { WeekSelector } from '@/components/schedule/WeekSelector';
 import { useScheduleCache } from '@/lib/hooks/useScheduleCache';
 import { useNotification } from '@/lib/context/NotificationContext';
 import { useFavorites } from '@/lib/hooks/useFavorites';
-import dynamic from 'next/dynamic';
+import { getGoogleSheet } from './api/googlesheets/googleapi'
 
 
 export default function Home() {
@@ -40,6 +40,19 @@ export default function Home() {
     const courseInitialized = useRef(false);
     const groupInitialized = useRef(false);
 
+    useEffect(() => {
+        const fetchGoogleSheetData = async () => {
+            try {
+                const data = await getGoogleSheet();
+                console.log(data)
+            } catch (error) {
+                console.error('Ошибка при загрузке данных из Google Sheets:', error);
+                showNotification('Ошибка при загрузке данных из Google Sheets', 'error');
+            }
+        };
+
+        fetchGoogleSheetData();
+    }, []);
 
     const {
         isLoading,
