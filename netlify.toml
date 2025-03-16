@@ -9,9 +9,13 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
   
+  [plugins.inputs]
+    minify = true
+    # Это ключевая опция для уменьшения размера функций
+    includeFiles = []
+    # Не включать никаких дополнительных файлов, которые не требуются
+
 [functions]
-  included_files = ["**/*.json", "**/*.js", "**/*.ts", "**/*.tsx", ".env*"]
+  # Убираем лишние файлы, которые увеличивают размер
+  included_files = []
   node_bundler = "esbuild"
-  
-[functions.api]
-  external_node_modules = ["googleapis"]
