@@ -8,9 +8,14 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
 [functions]
   node_bundler = "esbuild"
+  included_files = ["google_file.json"]
   
   # Вместо included_files, можно использовать external_node_modules
   # для указания пакетов, которые не нужно бандлить
