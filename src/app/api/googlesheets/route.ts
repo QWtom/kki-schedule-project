@@ -67,10 +67,13 @@ export async function GET() {
 			.map(sheet => sheet.properties!.title!);
 
 		if (ranges.length > 0) {
+			// В src/app/api/googlesheets/route.ts
 			const response = await sheets.spreadsheets.values.batchGet({
 				auth: jwtClient,
 				spreadsheetId,
-				ranges
+				ranges,
+				valueRenderOption: 'UNFORMATTED_VALUE',
+				dateTimeRenderOption: 'FORMATTED_STRING',
 			});
 
 			// Обработка полученных данных
@@ -92,10 +95,18 @@ export async function GET() {
 			sheetCount: Object.keys(allSheetsData).length
 		};
 
-		return NextResponse.json({
-			data: allSheetsData,
-			metadata
-		});
+		// В src/app/api/googlesheets/route.ts
+		return NextResponse.json(
+			{ data: allSheetsData, metadata },
+			{
+				headers: {
+					'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+					'Pragma': 'no-cache',
+					'Expires': '0',
+					'Surrogate-Control': 'no-store'
+				}
+			}
+		);
 	} catch (error) {
 		console.error('Error fetching Google Sheets data:', error);
 		return NextResponse.json(

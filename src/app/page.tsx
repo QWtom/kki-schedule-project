@@ -160,8 +160,9 @@ export default function Home() {
         : [];
 
     // Обработчик синхронизации с Google Sheets API
-    const handleSyncData = () => {
+    const handleSyncData = async () => {
         if (!isOnlineMode) return;
+        await new Promise(resolve => setTimeout(resolve, 2000));
         fetchGoogleSheetData();
     };
 
