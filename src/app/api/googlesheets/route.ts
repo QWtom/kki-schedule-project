@@ -4,20 +4,47 @@ import { google } from 'googleapis';
 
 export async function GET() {
 	try {
-		// Получаем переменные окружения
-		const privateKey = process.env.GOOGLE_PRIVATE_KEY!.replace(/\\n/g, '\n');
-		const clientEmail = process.env.GOOGLE_CLIENT_EMAIL!;
-		const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID!;
+		// Проверяем наличие всех необходимых переменных окружения
+		// Для работы с приватным ключом
+		const privateKey = process.env.GOOGLE_PRIVATE_KEY
+			? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/(^"|"$)/g, '')
+			: undefined;
+		const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+		const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
 
-		if (!privateKey || !clientEmail || !spreadsheetId) {
-			throw new Error('Missing required environment variables for Google Sheets API');
+		// Более детальная проверка и обработка ошибок
+		if (!privateKey) {
+			console.error('GOOGLE_PRIVATE_KEY is missing or undefined');
+			return NextResponse.json(
+				{ error: 'Missing GOOGLE_PRIVATE_KEY environment variable' },
+				{ status: 500 }
+			);
 		}
+
+		if (!clientEmail) {
+			console.error('GOOGLE_CLIENT_EMAIL is missing or undefined');
+			return NextResponse.json(
+				{ error: 'Missing GOOGLE_CLIENT_EMAIL environment variable' },
+				{ status: 500 }
+			);
+		}
+
+		if (!spreadsheetId) {
+			console.error('GOOGLE_SPREADSHEET_ID is missing or undefined');
+			return NextResponse.json(
+				{ error: 'Missing GOOGLE_SPREADSHEET_ID environment variable' },
+				{ status: 500 }
+			);
+		}
+
+		// Обработка приватного ключа, который может быть в разных форматах в зависимости от среды
+		const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
 
 		// Создаем JWT клиент для авторизации
 		const jwtClient = new google.auth.JWT(
 			clientEmail,
 			undefined,
-			privateKey,
+			formattedPrivateKey,
 			['https://www.googleapis.com/auth/spreadsheets']
 		);
 
@@ -26,8 +53,6 @@ export async function GET() {
 
 		// Создание Sheets API клиента
 		const sheets = google.sheets('v4');
-
-
 
 		// Получение метаданных таблицы
 		const spreadsheet = await sheets.spreadsheets.get({
@@ -62,21 +87,6 @@ export async function GET() {
 					}
 				});
 			}
-		}
-
-		// Получение данных с каждого листа
-		for (const sheet of spreadsheet.data.sheets) {
-			if (!sheet.properties?.title) continue;
-
-			const sheetTitle = sheet.properties.title;
-
-			const response = await sheets.spreadsheets.values.get({
-				auth: jwtClient,
-				spreadsheetId,
-				range: sheetTitle
-			});
-
-			allSheetsData[sheetTitle] = response.data.values || [];
 		}
 
 		// Метаданные для отслеживания синхронизации
