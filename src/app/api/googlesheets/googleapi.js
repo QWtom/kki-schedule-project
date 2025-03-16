@@ -1,8 +1,7 @@
-// src/app/api/googlesheets/googleapi.js
 export const getGoogleSheet = async () => {
 	try {
-		const API_SERVER_URL = process.env.NEXT_PUBLIC_API_SERVER_URL || 'https://kki-backend-api.onrender.com';
-		const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '6HUy45LlqtYLl46jrNPXgOOHuoeJfacevPdeBN8maEs=';
+		const API_SERVER_URL = process.env.NEXT_PUBLIC_API_SERVER_URL // test
+		const API_KEY = process.env.NEXT_PUBLIC_API_KEY // test
 
 		const timestamp = Date.now();
 		const randomParam = Math.random().toString(36).substring(7);

@@ -39,7 +39,12 @@ export default function Home() {
     const [selectedGroup, setSelectedGroup] = useState('');
     const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
     const { isOnlineMode, isOfflineMode } = useAppMode();
-    const { isLoading: isApiLoading, fetchGoogleSheetData, error: apiError } = useGoogleSheets();
+    const {
+        isLoading: isApiLoading,
+        fetchGoogleSheetData,
+        error: apiError,
+        parsedData: apiParsedData
+    } = useGoogleSheets();
 
     const courseInitialized = useRef(false);
     const groupInitialized = useRef(false);
@@ -47,7 +52,7 @@ export default function Home() {
     const {
         isLoading: isImportLoading,
         error: importError,
-        parsedData,
+        parsedData: importParsedData,
         handleFileImport,
         checkDataFreshness,
         resetError: resetImportError,
@@ -60,6 +65,8 @@ export default function Home() {
         setActiveWeek
     } = useScheduleCache();
 
+    // Используем данные из API, если они есть, иначе из файла или кэша
+    const parsedData = apiParsedData || importParsedData;
     const currentParsedData = activeWeek?.schedule || parsedData;
     const isLoading = isImportLoading || isApiLoading;
     const error = importError || apiError;
@@ -159,16 +166,18 @@ export default function Home() {
         ? getGroupDaySchedule(currentParsedData, selectedGroup, selectedDay)
         : [];
 
-    // В Home компоненте
-    useEffect(() => {
-        console.log('Current parsed data changed:', currentParsedData ? 'has data' : 'no data');
-    }, [currentParsedData]);
-
     const handleSyncData = async () => {
         if (!isOnlineMode) return;
-        await new Promise(resolve => setTimeout(resolve, 0));
-        fetchGoogleSheetData()
+        await fetchGoogleSheetData();
     };
+
+    // Сбрасываем инициализацию при изменении данных
+    useEffect(() => {
+        if (apiParsedData) {
+            courseInitialized.current = false;
+            groupInitialized.current = false;
+        }
+    }, [apiParsedData]);
 
     return (
         <Container maxWidth="lg">
@@ -222,9 +231,6 @@ export default function Home() {
                     }}
                 />
             </Box>
-            <Typography sx={{ opacity: 0.5 }}>Сайт временно некорректно работает, находится в тех. работе. </Typography>
-            <Typography sx={{ opacity: 0.5 }}>В данный момент идет разработка онлайн режима. Нажмитие на кнопку синхронизировать, затем обновите сайт :)</Typography>
-            <Typography sx={{ opacity: 0.5 }}>За ранее приносим свои извинения</Typography>
             <Box sx={{ py: 4, minHeight: '100vh' }}>
                 <Stack spacing={4}>
                     {/* Переключатель режима */}
@@ -342,14 +348,14 @@ export default function Home() {
                                     groups={filteredGroups}
                                     selectedGroup={selectedGroup}
                                     onChange={setSelectedGroup}
-                                    disabled={!selectedCourse || !parsedData || isLoading}
+                                    disabled={!selectedCourse || !currentParsedData || isLoading}
                                 />
                             </Stack>
                         </Stack>
                     </Paper>
 
                     {/* Отображение расписания */}
-                    {selectedGroup && parsedData && (
+                    {selectedGroup && currentParsedData && (
                         <Paper
                             elevation={0}
                             sx={{
