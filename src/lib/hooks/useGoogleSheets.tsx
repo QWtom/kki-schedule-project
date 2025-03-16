@@ -24,7 +24,7 @@ export function useGoogleSheets() {
 		}
 
 		setIsLoading(true);
-		setError(null);
+		setError(null)
 
 
 		try {
@@ -71,6 +71,7 @@ export function useGoogleSheets() {
 			return null;
 		} finally {
 			setIsLoading(false);
+			activeRequestRef.current = null;
 		}
 	}, [isOnlineMode, saveWeekSchedule, showNotification, updateLastSyncTime]);
 
