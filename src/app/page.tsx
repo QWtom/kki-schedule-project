@@ -166,11 +166,8 @@ export default function Home() {
 
     const handleSyncData = async () => {
         if (!isOnlineMode) return;
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        fetchGoogleSheetData().then(() => {
-            // Принудительное обновление страницы после успешной синхронизации
-            window.location.reload();
-        });
+        await new Promise(resolve => setTimeout(resolve, 0));
+        fetchGoogleSheetData()
     };
 
     return (
