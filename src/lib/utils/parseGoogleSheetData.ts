@@ -18,7 +18,7 @@ export const parseGoogleSheetData = (data: Record<string, any[]>): ParsedSchedul
 	// Перебираем все листы (ключи объекта data.data)
 	if (!data.data) return result;
 
-	Object.keys(data.data).forEach(sheetName => {
+	Object.keys(data.data).forEach((sheetName: any) => {
 		const courseInfo = parseCourseInfo(sheetName);
 		if (!courseInfo) {
 			console.warn(`Invalid sheet name format: ${sheetName}, skipping...`);
