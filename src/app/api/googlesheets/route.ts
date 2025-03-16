@@ -1,19 +1,16 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
-import path from 'path';
-import fs from 'fs';
-import { env } from 'process';
 
 export async function GET() {
 	try {
-		const keyFilePath = path.join(process.cwd(), 'google_file.json');
-		const keyFileContent = JSON.parse(fs.readFileSync(keyFilePath, 'utf8'));
+		const privateKey = process.env.GOOGLE_PRIVATE_KEY!.replace(/\\n/g, '\n');
+		const clientEmail = process.env.GOOGLE_CLIENT_EMAIL!;
+		const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID!;
 
-		// Создание JWT клиента
 		const jwtClient = new google.auth.JWT(
-			keyFileContent.client_email,
+			clientEmail,
 			undefined,
-			keyFileContent.private_key,
+			privateKey,
 			['https://www.googleapis.com/auth/spreadsheets']
 		);
 
@@ -22,8 +19,6 @@ export async function GET() {
 
 		// Создание Sheets API клиента
 		const sheets = google.sheets('v4');
-
-		const spreadsheetId = env.GOOGLESHEETID;
 
 		// Получение метаданных таблицы
 		const spreadsheet = await sheets.spreadsheets.get({
