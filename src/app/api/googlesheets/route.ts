@@ -1,10 +1,8 @@
-// src/app/api/googlesheets/route.ts
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 
 export async function GET() {
 	try {
-		// Проверяем наличие ключей
 		const privateKeyBase64 = process.env.GOOGLE_PRIVATE_KEY_BASE64;
 		const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
 		const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
