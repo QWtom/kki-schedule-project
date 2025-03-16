@@ -4,47 +4,44 @@ import { google } from 'googleapis';
 
 export async function GET() {
 	try {
-		// Проверяем наличие всех необходимых переменных окружения
-		// Для работы с приватным ключом
-		const privateKey = process.env.GOOGLE_PRIVATE_KEY
-			? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/(^"|"$)/g, '')
-			: undefined;
+		// Проверяем наличие ключей
+		const privateKeyBase64 = process.env.GOOGLE_PRIVATE_KEY_BASE64;
+		const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
 		const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
 		const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
 
-		// Более детальная проверка и обработка ошибок
-		if (!privateKey) {
-			console.error('GOOGLE_PRIVATE_KEY is missing or undefined');
-			return NextResponse.json(
-				{ error: 'Missing GOOGLE_PRIVATE_KEY environment variable' },
-				{ status: 500 }
-			);
+		let privateKey;
+
+		if (privateKeyBase64) {
+			try {
+				// Если есть Base64 кодированный ключ, используем его
+				privateKey = Buffer.from(privateKeyBase64, 'base64').toString('utf8');
+				console.log('Using Base64 decoded key');
+			} catch (decodeError) {
+				console.error('Error decoding Base64 key:', decodeError);
+				throw new Error('Invalid Base64 private key format');
+			}
+		} else if (privateKeyRaw) {
+			// Иначе используем обычный ключ
+			privateKey = privateKeyRaw.replace(/\\n/g, '\n');
+			// Удаляем лишние кавычки
+			if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+				privateKey = privateKey.slice(1, -1);
+			}
+			console.log('Using standard key format');
+		} else {
+			throw new Error('No private key found in environment variables');
 		}
 
-		if (!clientEmail) {
-			console.error('GOOGLE_CLIENT_EMAIL is missing or undefined');
-			return NextResponse.json(
-				{ error: 'Missing GOOGLE_CLIENT_EMAIL environment variable' },
-				{ status: 500 }
-			);
+		if (!clientEmail || !spreadsheetId) {
+			throw new Error('Missing required environment variables for Google Sheets API');
 		}
-
-		if (!spreadsheetId) {
-			console.error('GOOGLE_SPREADSHEET_ID is missing or undefined');
-			return NextResponse.json(
-				{ error: 'Missing GOOGLE_SPREADSHEET_ID environment variable' },
-				{ status: 500 }
-			);
-		}
-
-		// Обработка приватного ключа, который может быть в разных форматах в зависимости от среды
-		const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
 
 		// Создаем JWT клиент для авторизации
 		const jwtClient = new google.auth.JWT(
 			clientEmail,
 			undefined,
-			formattedPrivateKey,
+			privateKey,
 			['https://www.googleapis.com/auth/spreadsheets']
 		);
 
@@ -64,8 +61,8 @@ export async function GET() {
 			throw new Error('No sheets found in the spreadsheet');
 		}
 
-		// Объект для хранения данных
-		const allSheetsData: Record<string, any> = {};
+		// Объявляем тип для allSheetsData, чтобы исправить ошибку TypeScript
+		const allSheetsData: Record<string, any[]> = {};
 
 		const ranges = spreadsheet.data.sheets
 			.filter(sheet => sheet.properties?.title)
@@ -83,7 +80,9 @@ export async function GET() {
 				response.data.valueRanges.forEach((valueRange, index) => {
 					if (valueRange.range) {
 						const sheetTitle = ranges[index];
-						allSheetsData[sheetTitle] = valueRange.values || [];
+						if (sheetTitle) {
+							allSheetsData[sheetTitle] = valueRange.values || [];
+						}
 					}
 				});
 			}
