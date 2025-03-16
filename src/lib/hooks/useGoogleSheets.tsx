@@ -50,6 +50,10 @@ export function useGoogleSheets() {
 			if (!silent) {
 				showNotification('Данные успешно обновлены с сервера', 'success');
 			}
+			// В src/lib/hooks/useGoogleSheets.tsx
+			console.log('Raw API response:', JSON.stringify(data));
+			// Проверка изменений
+			console.log('Parsed data structure:', parsedData);
 
 			return parsedData;
 		} catch (error) {
@@ -98,6 +102,8 @@ export function useGoogleSheets() {
 			clearInterval(interval);
 		};
 	}, [isOnlineMode, isAutoSyncEnabled, lastSyncTime, fetchGoogleSheetData]);
+
+
 
 	return {
 		isLoading,

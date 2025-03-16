@@ -1,8 +1,8 @@
 // src/app/api/googlesheets/googleapi.js
 export const getGoogleSheet = async () => {
 	try {
-		// Добавляем timestamp к запросу, чтобы избежать кэширования
-		const response = await fetch(`/api/googlesheets?t=${Date.now()}`);
+		const randomParam = Math.floor(Math.random() * 1000000);
+		const response = await fetch(`/api/googlesheets?t=${Date.now()}&r=${randomParam}`);
 
 		if (!response.ok) {
 			const errorData = await response.json().catch(() => null);
