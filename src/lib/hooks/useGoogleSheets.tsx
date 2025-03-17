@@ -5,14 +5,16 @@ import { useNotification } from '@/lib/context/NotificationContext';
 import { useAppMode } from './useAppMode';
 import { useScheduleCache } from './useScheduleCache';
 import { parseGoogleSheetData } from '@/lib/utils/parseGoogleSheetData';
+import { ParsedSchedule } from '@/lib/types/shedule';
 
 export function useGoogleSheets() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [lastSync, setLastSync] = useState<Date | null>(null);
+	const [parsedDataState, setParsedDataState] = useState<ParsedSchedule | null>(null);
 	const { showNotification } = useNotification();
 	const { isOnlineMode, isAutoSyncEnabled, updateLastSyncTime, lastSyncTime } = useAppMode();
-	const { saveWeekSchedule } = useScheduleCache();
+	const { saveWeekSchedule, setActiveWeek } = useScheduleCache();
 	const activeRequestRef = useRef<Promise<any> | null>(null);
 
 	// Функция для получения данных с Google Sheets
@@ -24,14 +26,12 @@ export function useGoogleSheets() {
 		}
 
 		setIsLoading(true);
-		setError(null)
-
+		setError(null);
 
 		try {
 			activeRequestRef.current = getGoogleSheet();
 			// Получаем данные с Google Sheets
 			const data = await getGoogleSheet();
-
 
 			if (!data) {
 				throw new Error('Не удалось получить данные расписания');
@@ -40,8 +40,17 @@ export function useGoogleSheets() {
 			// Парсим данные
 			const parsedData = parseGoogleSheetData(data);
 
+			// Обновляем состояние данных в хуке
+			setParsedDataState(parsedData);
+
+			// Создаем ID недели для Google Sheet данных
+			const weekId = 'Google-API-Schedule';
+
 			// Сохраняем данные в кэш
-			await saveWeekSchedule('Google-API-Schedule', parsedData);
+			await saveWeekSchedule(weekId, parsedData);
+
+			// Устанавливаем активную неделю
+			setActiveWeek(weekId);
 
 			// Обновляем время последней синхронизации
 			updateLastSyncTime();
@@ -50,10 +59,6 @@ export function useGoogleSheets() {
 			if (!silent) {
 				showNotification('Данные успешно обновлены с сервера', 'success');
 			}
-			// В src/lib/hooks/useGoogleSheets.tsx
-			console.log('Raw API response:', JSON.stringify(data));
-			// Проверка изменений
-			console.log('Parsed data structure:', parsedData);
 
 			return parsedData;
 		} catch (error) {
@@ -73,7 +78,7 @@ export function useGoogleSheets() {
 			setIsLoading(false);
 			activeRequestRef.current = null;
 		}
-	}, [isOnlineMode, saveWeekSchedule, showNotification, updateLastSyncTime]);
+	}, [isOnlineMode, saveWeekSchedule, setActiveWeek, showNotification, updateLastSyncTime]);
 
 	// Автоматическая синхронизация
 	useEffect(() => {
@@ -104,12 +109,11 @@ export function useGoogleSheets() {
 		};
 	}, [isOnlineMode, isAutoSyncEnabled, lastSyncTime, fetchGoogleSheetData]);
 
-
-
 	return {
 		isLoading,
 		error,
 		lastSync,
+		parsedData: parsedDataState,
 		fetchGoogleSheetData,
 		resetError: () => setError(null)
 	};

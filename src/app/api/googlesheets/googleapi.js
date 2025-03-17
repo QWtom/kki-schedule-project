@@ -1,4 +1,3 @@
-// src/app/api/googlesheets/googleapi.js
 export const getGoogleSheet = async () => {
 	try {
 		const API_SERVER_URL = process.env.NEXT_PUBLIC_API_SERVER_URL;
