@@ -1,7 +1,7 @@
 export const getGoogleSheet = async () => {
 	try {
-		const API_SERVER_URL = process.env.NEXT_PUBLIC_API_SERVER_URL // test
-		const API_KEY = process.env.NEXT_PUBLIC_API_KEY // test
+		const API_SERVER_URL = process.env.NEXT_PUBLIC_API_SERVER_URL;
+		const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
 		const timestamp = Date.now();
 		const randomParam = Math.random().toString(36).substring(7);

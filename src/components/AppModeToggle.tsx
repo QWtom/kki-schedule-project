@@ -1,7 +1,6 @@
-// src/components/AppModeToggle.tsx
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, FormControlLabel, Switch, Typography, Tooltip, alpha, Paper } from '@mui/material';
 import { CloudOutlined, CloudOff } from '@mui/icons-material';
 import { useAppMode } from '@/lib/hooks/useAppMode';
@@ -19,7 +18,13 @@ export const AppModeToggle = () => {
 		isLoaded
 	} = useAppMode();
 
-	if (!isLoaded) return null;
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	if (!mounted || !isLoaded) return null;
 
 	const formatLastSync = () => {
 		if (!lastSyncTime) return 'Нет данных о синхронизации';

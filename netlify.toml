@@ -5,6 +5,7 @@
 [build.environment]
   NODE_VERSION = "18.17.0"
   NEXT_TELEMETRY_DISABLED = "1"
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_API_KEY,NEXT_PUBLIC_API_SERVER_URL"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -12,6 +13,17 @@
   for = "/api/*"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[redirects]]
+  from = "/_next/static/*"
+  to = "/_next/static/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [functions]
   node_bundler = "esbuild"

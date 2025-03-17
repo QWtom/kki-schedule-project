@@ -168,7 +168,13 @@ export default function Home() {
 
     const handleSyncData = async () => {
         if (!isOnlineMode) return;
-        await fetchGoogleSheetData();
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (parsedData === null) {
+            fetchGoogleSheetData().then(() => {
+                window.location.reload();
+            });
+        }
+        fetchGoogleSheetData()
     };
 
     // Сбрасываем инициализацию при изменении данных
