@@ -1,26 +1,55 @@
+// src/lib/utils/cache.ts
 import { CacheData } from '@/lib/types/cache';
 import { CACHE_CONSTANTS } from '@/lib/constants/cache';
 import { WeekSchedule } from '../types/shedule';
 
 export const validateCache = (cache: CacheData): boolean => {
-	if (!cache || !cache.metadata) return false;
-	if (cache.metadata.version !== CACHE_CONSTANTS.VERSION) return false;
+	if (!cache || !cache.metadata || !cache.data) return false;
 
-	const isExpired = Date.now() - cache.metadata.lastUpdated >
-		CACHE_CONSTANTS.LIFETIME.SCHEDULE;
+	// Проверяем версию кэша
+	if (cache.metadata.version !== CACHE_CONSTANTS.VERSION) {
+		console.log('Cache version mismatch', {
+			current: cache.metadata.version,
+			required: CACHE_CONSTANTS.VERSION
+		});
+		return false;
+	}
 
-	if (isExpired) return false;
+	// Проверяем срок жизни кэша
+	const now = Date.now();
+	const cacheAge = now - cache.metadata.lastUpdated;
 
-	if (cache.metadata.hash) {
-		const currentHash = generateDataHash(cache.data);
-		if (currentHash !== cache.metadata.hash) return false;
+	// Если кэш устарел совсем - он невалиден
+	if (cacheAge > CACHE_CONSTANTS.LIFETIME.SCHEDULE) {
+		console.log('Cache expired', {
+			age: Math.round(cacheAge / (60 * 60 * 1000)) + ' часов',
+			maxAge: Math.round(CACHE_CONSTANTS.LIFETIME.SCHEDULE / (60 * 60 * 1000)) + ' часов'
+		});
+		return false;
 	}
 
 	return true;
 };
 
+// Функция для проверки устаревания кэша (для уведомления пользователя)
+export const isCacheStale = (cache: CacheData): boolean => {
+	if (!cache || !cache.metadata) return true;
+
+	const now = Date.now();
+	const cacheAge = now - cache.metadata.lastUpdated;
+
+	return cacheAge > CACHE_CONSTANTS.LIFETIME.STALE;
+};
+
 export const generateDataHash = (data: any): string => {
-	return btoa(JSON.stringify(data)).slice(0, 10);
+	if (typeof window === 'undefined') return '';
+
+	try {
+		return btoa(JSON.stringify(data)).slice(0, 16);
+	} catch (e) {
+		console.error('Error generating hash:', e);
+		return '';
+	}
 };
 
 export const clearOldWeeks = (weeks: WeekSchedule[]): WeekSchedule[] => {

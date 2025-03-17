@@ -5,6 +5,7 @@ export interface CacheMetadata {
   version: string;
   source?: 'api' | 'file';
   hash?: string;
+  scheduleInfo?: string;
 }
 
 export interface CacheData {
@@ -19,6 +20,7 @@ export interface CacheEntry<T> {
     version: string;
     source?: 'api' | 'file';
     hash?: string;
+    scheduleInfo?: string;
   };
 }
 

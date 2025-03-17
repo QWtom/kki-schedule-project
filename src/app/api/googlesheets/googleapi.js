@@ -1,5 +1,16 @@
+// Добавьте механизм защиты от повторных запросов
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 5000; // 5 секунд между запросами
+
 export const getGoogleSheet = async () => {
 	try {
+		// Защита от частых запросов на клиенте
+		const now = Date.now();
+		if (now - lastRequestTime < MIN_REQUEST_INTERVAL) {
+			console.log(`Throttling API request. Last request was ${(now - lastRequestTime) / 1000}s ago`);
+		}
+		lastRequestTime = now;
+
 		const API_SERVER_URL = process.env.NEXT_PUBLIC_API_SERVER_URL;
 		const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 

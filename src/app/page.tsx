@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
     Container,
     Typography,
@@ -12,10 +12,14 @@ import {
     Alert,
     CircularProgress,
     Tooltip,
-    debounce
+    Chip,
+    Link
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import SyncIcon from '@mui/icons-material/Sync';
+import InfoIcon from '@mui/icons-material/Info';
+import UpdateIcon from '@mui/icons-material/Update';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { DaySelector } from '@/components/schedule/DaySelector';
 import { GroupSelector } from '@/components/schedule/GroupSelector';
 import { LessonCard } from '@/components/schedule/LessonCard';
@@ -23,7 +27,8 @@ import { useScheduleImport } from '@/lib/hooks/useSheduleImport';
 import { getCurrentDayId, getGroupDaySchedule } from '@/lib/utils/getUtilsParser';
 import { CourseSelector } from '@/components/schedule/CourseSelector';
 import { FavoriteGroups } from '@/components/schedule/FavoriteGroups';
-import { CachedOutlined } from '@mui/icons-material';
+import TelegramIcon from '@mui/icons-material/Telegram';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { WeekSelector } from '@/components/schedule/WeekSelector';
 import { useScheduleCache } from '@/lib/hooks/useScheduleCache';
 import { useNotification } from '@/lib/context/NotificationContext';
@@ -39,15 +44,17 @@ export default function Home() {
     const [selectedGroup, setSelectedGroup] = useState('');
     const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
     const { isOnlineMode, isOfflineMode } = useAppMode();
+    const [initialLoadDone, setInitialLoadDone] = useState(false);
+    const [manualSyncInProgress, setManualSyncInProgress] = useState(false);
+
     const {
         isLoading: isApiLoading,
         fetchGoogleSheetData,
         error: apiError,
-        parsedData: apiParsedData
+        parsedData: apiParsedData,
+        loadedDataInfo,
+        isCacheStale
     } = useGoogleSheets();
-
-    const courseInitialized = useRef(false);
-    const groupInitialized = useRef(false);
 
     const {
         isLoading: isImportLoading,
@@ -65,15 +72,67 @@ export default function Home() {
         setActiveWeek
     } = useScheduleCache();
 
-    // Используем данные из API, если они есть, иначе из файла или кэша
+    const courseInitialized = useRef(false);
+    const groupInitialized = useRef(false);
+
     const parsedData = apiParsedData || importParsedData;
     const currentParsedData = activeWeek?.schedule || parsedData;
-    const isLoading = isImportLoading || isApiLoading;
+    const isLoading = isImportLoading || isApiLoading || manualSyncInProgress;
     const error = importError || apiError;
 
-    const { isFresh, lastUpdate } = checkDataFreshness();
+    const handleSyncData = useCallback(async () => {
+        if (!isOnlineMode) {
+            showNotification('Синхронизация недоступна в оффлайн режиме', 'info');
+            return;
+        }
+        if (isLoading) {
+            showNotification('Синхронизация уже выполняется', 'info');
+            return;
+        }
 
-    // Инициализируем выбранный курс из избранного
+        try {
+            setManualSyncInProgress(true);
+            console.log('Запуск ручной синхронизации данных');
+            const data = await fetchGoogleSheetData(false);
+
+            if (data) {
+                console.log('Синхронизация успешно завершена')
+                courseInitialized.current = false;
+                groupInitialized.current = false;
+            }
+        } catch (error) {
+            console.error('Ошибка синхронизации:', error);
+            showNotification('Ошибка при синхронизации данных', 'error');
+        } finally {
+            setManualSyncInProgress(false);
+        }
+    }, [isOnlineMode, isLoading, fetchGoogleSheetData, showNotification]);
+
+    const handleFileChange = useMemo(
+        () => async (event: React.ChangeEvent<HTMLInputElement>) => {
+            if (isOnlineMode) return;
+
+            const file = event.target.files?.[0];
+            if (file) {
+                try {
+                    const importedData = await handleFileImport(file);
+                    if (importedData) {
+                        saveWeekSchedule(file.name, importedData);
+                        showNotification(`Неделя "${file.name}" сохранена`, 'success');
+
+                        courseInitialized.current = false;
+                        groupInitialized.current = false;
+                    }
+                } catch (error) {
+                    console.error('File import failed:', error);
+                    showNotification('Ошибка при импорте файла', 'error');
+                }
+            }
+        },
+        [handleFileImport, saveWeekSchedule, showNotification, isOnlineMode]
+    );
+
+
     useEffect(() => {
         if (
             currentParsedData &&
@@ -86,7 +145,6 @@ export default function Home() {
         }
     }, [currentParsedData, defaultCourse, selectedCourse]);
 
-    // Инициализируем выбранную группу из избранного
     useEffect(() => {
         if (
             currentParsedData &&
@@ -103,50 +161,25 @@ export default function Home() {
         }
     }, [currentParsedData, favoriteGroups, selectedGroup]);
 
-    // Форматирование даты последнего обновления
-    const formatLastUpdate = (date: Date | null) => {
-        if (!date || isNaN(date.getTime())) {
-            console.log('Invalid date in formatLastUpdate:', date);
-            return 'Нет данных';
+    useEffect(() => {
+        if (!initialLoadDone && isOnlineMode && !isLoading && !parsedData) {
+            console.log('Выполняем первичную загрузку данных');
+            setInitialLoadDone(true);
+
+            const timer = setTimeout(() => {
+                fetchGoogleSheetData(true).catch(err => {
+                    console.error('Ошибка при начальной загрузке:', err);
+                });
+            }, 1000);
+
+            return () => clearTimeout(timer);
         }
 
-        try {
-            return new Intl.DateTimeFormat('ru-RU', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            }).format(date);
-        } catch (error) {
-            console.error('Error formatting date:', error);
-            return 'Ошибка формата даты';
+        if (!initialLoadDone && parsedData) {
+            setInitialLoadDone(true);
         }
-    };
+    }, [initialLoadDone, isOnlineMode, isLoading, parsedData, fetchGoogleSheetData]);
 
-    // Обработчик загрузки файла (только для оффлайн режима)
-    const handleFileChange = useMemo(
-        () => debounce(async (event: React.ChangeEvent<HTMLInputElement>) => {
-            if (isOnlineMode) return; // Загрузка файлов только в оффлайн режиме
-
-            const file = event.target.files?.[0];
-            if (file) {
-                try {
-                    const importedData = await handleFileImport(file);
-                    if (importedData) {
-                        saveWeekSchedule(file.name, importedData);
-                        showNotification(`Неделя "${file.name}" сохранена`, 'success');
-                    }
-                } catch (error) {
-                    console.error('File import failed:', error);
-                    showNotification('Ошибка при импорте файла', 'error');
-                }
-            }
-        }, 300),
-        [handleFileImport, saveWeekSchedule, showNotification, isOnlineMode]
-    );
-
-    // Фильтрация групп по выбранному курсу
     const filteredGroups = currentParsedData?.groups.filter(g => {
         if (!selectedCourse) return true;
         const [courseStr, subgroupStr] = selectedCourse.replace(')', '').split('(');
@@ -155,35 +188,14 @@ export default function Home() {
         return g.course === course && g.subgroup === subgroup;
     }) || [];
 
-    // Обработчик изменения курса
     const handleCourseChange = (courseKey: string) => {
         setSelectedCourse(courseKey);
         setSelectedGroup('');
     };
 
-    // Получаем расписание для выбранной группы и дня
     const currentSchedule = selectedGroup && currentParsedData
         ? getGroupDaySchedule(currentParsedData, selectedGroup, selectedDay)
         : [];
-
-    const handleSyncData = async () => {
-        if (!isOnlineMode) return;
-        await new Promise(resolve => setTimeout(resolve, 0));
-        if (parsedData === null) {
-            fetchGoogleSheetData().then(() => {
-                window.location.reload();
-            });
-        }
-        fetchGoogleSheetData()
-    };
-
-    // Сбрасываем инициализацию при изменении данных
-    useEffect(() => {
-        if (apiParsedData) {
-            courseInitialized.current = false;
-            groupInitialized.current = false;
-        }
-    }, [apiParsedData]);
 
     return (
         <Container maxWidth="lg">
@@ -237,10 +249,138 @@ export default function Home() {
                     }}
                 />
             </Box>
+            <Box sx={{
+                p: 3,
+                my: 2,
+                borderRadius: 2,
+                background: alpha('#3B82F6', 0.1),
+                border: `1px solid ${alpha('#3B82F6', 0.2)}`,
+            }}>
+                <Box sx={{
+                    display: 'flex',
+                    mb: 2
+                }}>
+                    <InfoIcon sx={{ color: 'info.main', mr: 1 }} />
+                    <Typography variant="h6" component="span">
+                        Внимание
+                    </Typography>
+                </Box>
+
+                <Typography>
+                    Сайт временно некорректно работает. Находится в тех. работе. Могут быть ошибки в запросе или в функционале. Если нашли ошибки или не поняли как пользоваться сайтом, то свяжитесь со мной:
+                </Typography>
+
+                <Box sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 2,
+                    mt: 1
+                }}>
+                    <Link
+                        href="https://t.me/iteatom"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            color: 'primary.main',
+                            textDecoration: 'none',
+                            '&:hover': {
+                                textDecoration: 'underline'
+                            }
+                        }}
+                    >
+                        <TelegramIcon fontSize="small" />
+                        Telegram
+                    </Link>
+
+                    <Link
+                        href="https://wa.me/79627396052"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            color: 'primary.main',
+                            textDecoration: 'none',
+                            '&:hover': {
+                                textDecoration: 'underline'
+                            }
+                        }}
+                    >
+                        <WhatsAppIcon fontSize="small" />
+                        WhatsApp
+                    </Link>
+                </Box>
+            </Box>
             <Box sx={{ py: 4, minHeight: '100vh' }}>
                 <Stack spacing={4}>
                     {/* Переключатель режима */}
                     <AppModeToggle />
+
+                    {/* Информация о загруженном расписании */}
+                    {currentParsedData && (
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 2,
+                                mb: 2,
+                                background: alpha('#1E293B', 0.6),
+                                backdropFilter: 'blur(20px)',
+                                borderRadius: 2,
+                                border: '1px solid rgba(59, 130, 246, 0.2)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                flexWrap: 'wrap',
+                                gap: 2
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <InfoIcon color="primary" />
+                                <Box>
+                                    <Typography variant="body1">
+                                        {loadedDataInfo ?
+                                            `Загружено расписание: ${loadedDataInfo}` :
+                                            'Расписание успешно загружено'}
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            {/* Индикатор состояния данных */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                {isLoading ? (
+                                    <Chip
+                                        icon={<CircularProgress size={16} />}
+                                        label="Синхронизация..."
+                                        color="info"
+                                        size="small"
+                                    />
+                                ) : isCacheStale ? (
+                                    <Tooltip title="Обновить данные">
+                                        <Chip
+                                            icon={<UpdateIcon fontSize="small" />}
+                                            label="Обновить"
+                                            color="primary"
+                                            size="small"
+                                            clickable
+                                            onClick={handleSyncData}
+                                        />
+                                    </Tooltip>
+                                ) : (
+                                    <Chip
+                                        icon={<CheckCircleIcon fontSize="small" />}
+                                        label="Актуально"
+                                        color="success"
+                                        size="small"
+                                        variant="outlined"
+                                    />
+                                )}
+                            </Box>
+                        </Paper>
+                    )}
 
                     {/* Основной интерфейс */}
                     <Paper
@@ -252,23 +392,6 @@ export default function Home() {
                         }}
                     >
                         <Stack spacing={3}>
-                            {/* Индикатор свежести данных */}
-                            {parsedData && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Tooltip title={`Последнее обновление: ${formatLastUpdate(lastUpdate)}`}>
-                                        <CachedOutlined
-                                            color={isFresh ? 'success' : 'warning'}
-                                            sx={{ cursor: 'help' }}
-                                        />
-                                    </Tooltip>
-                                    {!isFresh && lastUpdate && (
-                                        <Typography variant="caption" color="warning.main">
-                                            Рекомендуется обновить данные
-                                        </Typography>
-                                    )}
-                                </Box>
-                            )}
-
                             {/* Выбор недели (только для оффлайн режима) */}
                             {isOfflineMode && weeks.length > 0 && (
                                 <WeekSelector

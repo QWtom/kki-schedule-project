@@ -1,28 +1,29 @@
+// src/lib/hooks/useScheduleCache.ts
 import { useLocalStorage } from './useLocalStorage';
 import { ScheduleCache } from '@/lib/types/cache';
 import { CACHE_CONSTANTS } from '@/lib/constants/cache';
-import { clearOldWeeks, validateCache } from '@/lib/utils/cache';
-import { ParsedSchedule, ScheduleCollection, WeekSchedule } from '@/lib/types/shedule';
+import { generateDataHash, validateCache } from '@/lib/utils/cache';
+import { ParsedSchedule, WeekSchedule } from '@/lib/types/shedule';
 import { parseWeekInfo } from '@/lib/utils/weekParser';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNotification } from '../context/NotificationContext';
-
-interface ScheduleCollectionState {
-	activeWeekId: string | null;
-	weeks: WeekSchedule[];
-}
 
 export function useScheduleCache() {
 	const { showNotification } = useNotification();
 	const operationInProgressRef = useRef(false);
 	const notificationsShownRef = useRef<Set<string>>(new Set());
+	const [isInitialized, setIsInitialized] = useState(false);
+	const [isCacheValid, setIsCacheValid] = useState(false);
 
 	const [cache, setCache] = useLocalStorage<ScheduleCache | null>(
 		CACHE_CONSTANTS.KEYS.SCHEDULE,
 		null
 	);
 
-	const [weekCollection, setWeekCollection] = useLocalStorage<ScheduleCollection>(
+	const [weekCollection, setWeekCollection] = useLocalStorage<{
+		activeWeekId: string | null;
+		weeks: WeekSchedule[];
+	}>(
 		CACHE_CONSTANTS.KEYS.WEEKS,
 		{
 			activeWeekId: null,
@@ -42,91 +43,76 @@ export function useScheduleCache() {
 	}, [showNotification]);
 
 	const safeSetCache = useCallback(async (data: ScheduleCache | null) => {
-		if (operationInProgressRef.current) return;
+		if (operationInProgressRef.current) return Promise.resolve();
 
 		try {
 			operationInProgressRef.current = true;
-			await setCache(data);
+			setCache(data);
+			return Promise.resolve();
 		} catch (error) {
 			console.error('Error saving to cache:', error);
-			await clearAllData();
-			showNotificationOnce('Произошла ошибка при сохранении данных', 'error');
+			return Promise.reject(error);
 		} finally {
 			operationInProgressRef.current = false;
 		}
-	}, [setCache, showNotificationOnce]);
+	}, [setCache]);
 
 	const getActiveWeek = useCallback((): WeekSchedule | null => {
 		if (!weekCollection?.activeWeekId) return null;
 		return weekCollection.weeks.find(w => w.weekId === weekCollection.activeWeekId) || null;
 	}, [weekCollection]);
 
-	const cleanupOldData = useCallback(() => {
-		if (operationInProgressRef.current) return;
-
-		setWeekCollection((current: any) => {
-			if (!current || current.weeks.length === 0) return current;
-
-			const now = Date.now();
-			const maxAge = CACHE_CONSTANTS.LIFETIME.SCHEDULE;
-			const validWeeks = current.weeks.filter((week: any) =>
-				now - week.uploadDate < maxAge
-			).slice(0, CACHE_CONSTANTS.MAX_STORED_WEEKS);
-
-			if (validWeeks.length === current.weeks.length) return current;
-
-			return {
-				activeWeekId: current.activeWeekId,
-				weeks: validWeeks
-			};
-		});
-	}, [setWeekCollection]);
-
+	// Проверка кэша при инициализации
 	useEffect(() => {
-		const activeWeek = getActiveWeek();
-		if (activeWeek && (!cache || cache.metadata.lastUpdated !== activeWeek.uploadDate)) {
-			safeSetCache({
-				data: activeWeek.schedule,
-				metadata: {
-					lastUpdated: activeWeek.uploadDate,
-					version: CACHE_CONSTANTS.VERSION
-				}
-			});
+		// При монтировании компонента проверяем, валиден ли кэш
+		const isValid = cache ? validateCache(cache) : false;
+		setIsCacheValid(isValid);
+		setIsInitialized(true);
+
+		if (isValid) {
+			console.log('Loaded valid schedule from cache');
+		} else {
+			console.log('Cache is invalid or missing');
 		}
+	}, [cache]);
 
-		const cleanupInterval = setInterval(cleanupOldData, 24 * 60 * 60 * 1000);
-		return () => clearInterval(cleanupInterval);
-	}, [weekCollection?.activeWeekId, getActiveWeek, cache, safeSetCache, cleanupOldData]);
-
-	const saveWeekSchedule = useCallback(async (fileName: string, scheduleData: ParsedSchedule) => {
+	const saveWeekSchedule = useCallback(async (weekName: string, scheduleData: ParsedSchedule, weekDate?: string) => {
 		if (operationInProgressRef.current) {
 			showNotificationOnce('Операция уже выполняется', 'warning');
-			return;
+			return Promise.reject(new Error('Операция уже выполняется'));
 		}
 
 		try {
 			operationInProgressRef.current = true;
 			const timestamp = Date.now();
-			const { weekId, weekName } = parseWeekInfo(fileName);
+
+			// Создаем ID для недели
+			const weekId = `week-${weekName.replace(/[^a-zа-я0-9]/gi, '-').toLowerCase()}`;
+			const displayName = weekDate || weekName || 'Расписание';
 
 			const newWeek: WeekSchedule = {
 				weekId,
-				weekName,
+				weekName: displayName,
 				uploadDate: timestamp,
 				schedule: scheduleData
 			};
 
-			await setWeekCollection(current => {
+			// Проверяем, есть ли данные с тем же ID
+			let existingWeekUpdated = false;
+
+			setWeekCollection(current => {
 				const safeCollection = current || { activeWeekId: null, weeks: [] };
 				let updatedWeeks = [...safeCollection.weeks];
 				const existingIndex = updatedWeeks.findIndex(w => w.weekId === weekId);
 
 				if (existingIndex >= 0) {
 					updatedWeeks[existingIndex] = newWeek;
+					existingWeekUpdated = true;
 				} else {
 					updatedWeeks.push(newWeek);
 				}
 
+				// Сортируем и ограничиваем количество сохраненных недель
 				updatedWeeks = updatedWeeks
 					.sort((a, b) => b.uploadDate - a.uploadDate)
 					.slice(0, CACHE_CONSTANTS.MAX_STORED_WEEKS);
@@ -137,41 +123,83 @@ export function useScheduleCache() {
 				};
 			});
 
+			// Обновляем основной кэш
 			await safeSetCache({
 				data: scheduleData,
 				metadata: {
 					lastUpdated: timestamp,
-					version: CACHE_CONSTANTS.VERSION
+					version: CACHE_CONSTANTS.VERSION,
+					source: 'api',
+					scheduleInfo: displayName,
+					hash: generateDataHash(scheduleData)
 				}
 			});
+
+			setIsCacheValid(true);
+
+			if (!existingWeekUpdated) {
+				showNotificationOnce(`Добавлено расписание: ${displayName}`, 'success');
+			}
+
+			return Promise.resolve(newWeek);
+		} catch (error) {
+			console.error('Ошибка при сохранении расписания:', error);
+			return Promise.reject(error);
 		} finally {
 			operationInProgressRef.current = false;
 		}
 	}, [setWeekCollection, safeSetCache, showNotificationOnce]);
 
 	const clearAllData = useCallback(async () => {
-		if (operationInProgressRef.current) return;
+		if (operationInProgressRef.current) return Promise.reject(new Error('Operation in progress'));
 
 		try {
 			operationInProgressRef.current = true;
-			await safeSetCache(null);
-			await setWeekCollection({
+			setCache(null);
+			setWeekCollection({
 				activeWeekId: null,
 				weeks: []
 			});
 			notificationsShownRef.current.clear();
+			setIsCacheValid(false);
+			return Promise.resolve();
+		} catch (error) {
+			console.error('Error clearing data:', error);
+			return Promise.reject(error);
 		} finally {
 			operationInProgressRef.current = false;
 		}
-	}, [safeSetCache, setWeekCollection]);
+	}, [setCache, setWeekCollection]);
 
-	const setActiveWeek = useCallback((weekId: string) =>
-		setWeekCollection((current: ScheduleCollectionState | null) => ({
-			activeWeekId: weekId,
-			weeks: current?.weeks || []
-		}))
-		, [setWeekCollection]);
+	const setActiveWeek = useCallback(async (weekId: string) => {
+		try {
+			setWeekCollection((current) => ({
+				activeWeekId: weekId,
+				weeks: current?.weeks || []
+			}));
 
+			const week = weekCollection?.weeks.find(w => w.weekId === weekId);
+			if (week) {
+				await safeSetCache({
+					data: week.schedule,
+					metadata: {
+						lastUpdated: week.uploadDate,
+						version: CACHE_CONSTANTS.VERSION,
+						source: 'api',
+						scheduleInfo: week.weekName
+					}
+				});
+				setIsCacheValid(true);
+			}
+
+			return Promise.resolve();
+		} catch (error) {
+			console.error('Error setting active week:', error);
+			return Promise.reject(error);
+		}
+	}, [setWeekCollection, weekCollection, safeSetCache]);
+
+	// Очищаем ресурсы при размонтировании
 	useEffect(() => {
 		return () => {
 			notificationsShownRef.current.clear();
@@ -186,9 +214,9 @@ export function useScheduleCache() {
 		weeks: weekCollection?.weeks || [],
 		saveWeekSchedule,
 		clearCache: clearAllData,
-		// Добавим проверку на null для cache
-		hasValidCache: cache ? validateCache(cache) : false,
+		hasValidCache: isCacheValid,
 		hasWeeks: Boolean(weekCollection?.weeks?.length),
-		setActiveWeek
+		setActiveWeek,
+		isInitialized
 	};
 }

@@ -10,13 +10,17 @@ const AUTO_SYNC_INTERVAL = 16 * 60 * 60 * 1000;
 
 export function SyncManager() {
 	const { isOnlineMode, isAutoSyncEnabled, lastSyncTime } = useAppMode();
-	const { fetchGoogleSheetData } = useGoogleSheets();
+	const { fetchGoogleSheetData, isLoading } = useGoogleSheets();
 	const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const syncAttemptedRef = useRef(false);
 
 	useEffect(() => {
 		// Функция для настройки автосинхронизации
 		const setupAutoSync = () => {
 			if (!isOnlineMode || !isAutoSyncEnabled) return;
+
+			// Избегаем множественных синхронизаций
+			if (syncAttemptedRef.current && !lastSyncTime) return;
 
 			// Очищаем предыдущий таймер, если он был
 			if (syncTimeoutRef.current) {
@@ -28,24 +32,30 @@ export function SyncManager() {
 			const now = Date.now();
 			const nextSyncTime = lastSyncTime
 				? lastSyncTime + AUTO_SYNC_INTERVAL
-				: now;
+				: now + 30000; // При первом запуске отложим на 30 секунд
 
 			// Если пора синхронизировать или прошло больше времени, чем интервал
 			if (now >= nextSyncTime) {
-				// Запускаем синхронизацию сразу
-				fetchGoogleSheetData(true).then(() => {
-					// После успешной синхронизации планируем следующую
-					syncTimeoutRef.current = setTimeout(setupAutoSync, AUTO_SYNC_INTERVAL);
-				});
+				// Отмечаем, что попытка была сделана
+				syncAttemptedRef.current = true;
+
+				// Запускаем синхронизацию с небольшой задержкой
+				syncTimeoutRef.current = setTimeout(() => {
+					if (!isLoading) {
+						console.log('Auto sync triggered');
+						fetchGoogleSheetData(true).then(() => {
+							// После успешной синхронизации планируем следующую
+							syncTimeoutRef.current = setTimeout(setupAutoSync, AUTO_SYNC_INTERVAL);
+						});
+					} else {
+						// Если загрузка уже идет, отложим проверку
+						syncTimeoutRef.current = setTimeout(setupAutoSync, 60000);
+					}
+				}, 10000); // 10 секунд задержки
 			} else {
 				// Иначе планируем синхронизацию на нужное время
 				const timeToNextSync = nextSyncTime - now;
-				syncTimeoutRef.current = setTimeout(() => {
-					fetchGoogleSheetData(true).then(() => {
-						// После успешной синхронизации планируем следующую
-						syncTimeoutRef.current = setTimeout(setupAutoSync, AUTO_SYNC_INTERVAL);
-					});
-				}, timeToNextSync);
+				syncTimeoutRef.current = setTimeout(setupAutoSync, timeToNextSync);
 			}
 		};
 
@@ -57,7 +67,7 @@ export function SyncManager() {
 				clearTimeout(syncTimeoutRef.current);
 			}
 		};
-	}, [isOnlineMode, isAutoSyncEnabled, lastSyncTime, fetchGoogleSheetData]);
+	}, [isOnlineMode, isAutoSyncEnabled, lastSyncTime, fetchGoogleSheetData, isLoading]);
 
 	// Компонент не отображает никакого UI
 	return null;

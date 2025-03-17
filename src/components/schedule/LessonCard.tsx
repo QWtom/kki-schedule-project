@@ -1,3 +1,4 @@
+// src/components/schedule/LessonCard.tsx
 'use client'
 
 import { Lesson } from '@/lib/types/shedule';
@@ -12,13 +13,15 @@ import {
 	useTheme,
 	useMediaQuery,
 	Collapse,
-	IconButton
+	IconButton,
+	Chip
 } from '@mui/material';
 import {
 	AccessTime as TimeIcon,
 	Room as RoomIcon,
 	Person as PersonIcon,
-	ExpandMore as ExpandMoreIcon
+	ExpandMore as ExpandMoreIcon,
+	Videocam as VideocamIcon
 } from '@mui/icons-material';
 import { useState } from 'react';
 
@@ -32,15 +35,23 @@ export const LessonCard = ({ lesson, index }: LessonCardProps) => {
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const [expanded, setExpanded] = useState(!isMobile);
 
+	// Проверяем, проходит ли урок в Сферуме
+	const isSferum = typeof lesson.room === 'string' &&
+		lesson.room.toLowerCase().includes('сферум');
+
 	const cardStyles = {
 		p: isMobile ? 2 : 3,
-		background: alpha('#1E293B', 0.6),
+		background: isSferum
+			? alpha('#3B82F6', 0.15) // Светло-синий фон для занятий в Сферуме
+			: alpha('#1E293B', 0.6),
 		backdropFilter: 'blur(20px)',
 		transition: 'transform 0.2s, box-shadow 0.2s',
+		position: 'relative',
 		'&:hover': {
 			transform: 'translateY(-2px)',
 			boxShadow: `0 8px 24px ${alpha('#000', 0.2)}`,
 		},
+		border: isSferum ? `1px solid ${alpha('#3B82F6', 0.3)}` : 'none',
 	};
 
 	return (
@@ -50,20 +61,45 @@ export const LessonCard = ({ lesson, index }: LessonCardProps) => {
 					<Box sx={{
 						display: 'flex',
 						justifyContent: 'space-between',
-						alignItems: isMobile ? 'center' : 'flex-start',
-						flexWrap: isMobile ? 'wrap' : 'nowrap',
+						alignItems: 'center',
+						flexWrap: 'wrap',
 						gap: 1
 					}}>
-						<Typography
-							variant={isMobile ? "subtitle1" : "h6"}
-							sx={{
-								color: 'primary.light',
-								flex: 1,
-								minWidth: isMobile ? '100%' : 'auto'
-							}}
-						>
-							{lesson.subject}
-						</Typography>
+						<Box sx={{
+							display: 'flex',
+							alignItems: 'center',
+							flex: 1,
+							gap: 1
+						}}>
+							<Typography
+								variant={isMobile ? "subtitle1" : "h6"}
+								sx={{
+									color: 'primary.light',
+									flex: 1,
+								}}
+							>
+								{lesson.subject}
+							</Typography>
+
+							{/* Чип "Онлайн" в заголовке */}
+							{isSferum && (
+								<Chip
+									icon={<VideocamIcon fontSize="small" />}
+									label="Онлайн"
+									size="small"
+									color="primary"
+									sx={{
+										height: 24,
+										ml: 1,
+										'& .MuiChip-label': {
+											px: 1,
+											fontSize: '0.7rem'
+										}
+									}}
+								/>
+							)}
+						</Box>
+
 						<Box
 							sx={{
 								display: 'flex',
@@ -80,6 +116,14 @@ export const LessonCard = ({ lesson, index }: LessonCardProps) => {
 					</Box>
 
 					<Divider sx={{ borderColor: alpha('#94A3B8', 0.1) }} />
+
+					{/* Аудитория всегда видна */}
+					<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+						<RoomIcon fontSize="small" sx={{ color: isSferum ? "primary" : "text.secondary" }} />
+						<Typography variant="body2" color={isSferum ? "primary" : "text.secondary"} fontWeight={isSferum ? 500 : 400}>
+							{lesson.room}
+						</Typography>
+					</Box>
 
 					{isMobile && (
 						<Box
@@ -116,13 +160,6 @@ export const LessonCard = ({ lesson, index }: LessonCardProps) => {
 									sx={{ wordBreak: 'break-word' }}
 								>
 									{lesson.teacher}
-								</Typography>
-							</Box>
-
-							<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-								<RoomIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-								<Typography variant="body2" color="text.secondary">
-									{lesson.room}
 								</Typography>
 							</Box>
 						</Stack>
