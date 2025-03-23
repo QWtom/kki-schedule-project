@@ -249,76 +249,10 @@ export default function Home() {
                     }}
                 />
             </Box>
-            <Box sx={{
-                p: 3,
-                my: 2,
-                borderRadius: 2,
-                background: alpha('#3B82F6', 0.1),
-                border: `1px solid ${alpha('#3B82F6', 0.2)}`,
-            }}>
-                <Box sx={{
-                    display: 'flex',
-                    mb: 2
-                }}>
-                    <InfoIcon sx={{ color: 'info.main', mr: 1 }} />
-                    <Typography variant="h6" component="span">
-                        Внимание
-                    </Typography>
-                </Box>
-
-                <Typography>
-                    Сайт временно некорректно работает. Находится в тех. работе. Могут быть ошибки в запросе или в функционале. Если нашли ошибки или не поняли как пользоваться сайтом, то свяжитесь со мной:
-                </Typography>
-
-                <Box sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 2,
-                    mt: 1
-                }}>
-                    <Link
-                        href="https://t.me/iteatom"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            color: 'primary.main',
-                            textDecoration: 'none',
-                            '&:hover': {
-                                textDecoration: 'underline'
-                            }
-                        }}
-                    >
-                        <TelegramIcon fontSize="small" />
-                        Telegram
-                    </Link>
-
-                    <Link
-                        href="https://wa.me/79627396052"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            color: 'primary.main',
-                            textDecoration: 'none',
-                            '&:hover': {
-                                textDecoration: 'underline'
-                            }
-                        }}
-                    >
-                        <WhatsAppIcon fontSize="small" />
-                        WhatsApp
-                    </Link>
-                </Box>
-            </Box>
             <Box sx={{ py: 4, minHeight: '100vh' }}>
                 <Stack spacing={4}>
                     {/* Переключатель режима */}
-                    <AppModeToggle />
+                    {/* <AppModeToggle /> */}
 
                     {/* Информация о загруженном расписании */}
                     {currentParsedData && (
@@ -528,6 +462,62 @@ export default function Home() {
                         </Paper>
                     )}
                 </Stack>
+                    <Box sx={{
+                        p: 3,
+                        my: 2,
+                        borderRadius: 2,
+                        background: alpha('#3B82F6', 0.1),
+                        border: `1px solid ${alpha('#3B82F6', 0.2)}`,
+                    }}>
+                        <Typography variant="h6">
+                            Контакты
+                        </Typography>
+
+                        <Box sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 2,
+                            mt: 1
+                        }}>
+                            <Link
+                                href="https://t.me/iteatom"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                sx={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 0.5,
+                                    color: 'primary.main',
+                                    textDecoration: 'none',
+                                    '&:hover': {
+                                        textDecoration: 'underline'
+                                    }
+                                }}
+                            >
+                                <TelegramIcon fontSize="small" />
+                                Telegram
+                            </Link>
+
+                            <Link
+                                href="https://wa.me/79627396052"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                sx={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 0.5,
+                                    color: 'primary.main',
+                                    textDecoration: 'none',
+                                    '&:hover': {
+                                        textDecoration: 'underline'
+                                    }
+                                }}
+                            >
+                                <WhatsAppIcon fontSize="small" />
+                                WhatsApp
+                            </Link>
+                        </Box>
+                    </Box>
             </Box>
         </Container>
     );
