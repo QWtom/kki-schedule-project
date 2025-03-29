@@ -307,10 +307,6 @@ export default function Home() {
             </Box>
             <Box sx={{ py: 4, minHeight: '100vh' }}>
                 <Stack spacing={4}>
-                    {/* Переключатель режима */}
-                    {/* <AppModeToggle /> */}
-
-                    {/* Информация о загруженном расписании */}
                     {currentParsedData && (
                         <Paper
                             elevation={0}
