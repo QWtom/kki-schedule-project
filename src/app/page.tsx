@@ -92,11 +92,9 @@ export default function Home() {
 
         try {
             setManualSyncInProgress(true);
-            console.log('Запуск ручной синхронизации данных');
             const data = await fetchGoogleSheetData(false);
 
             if (data) {
-                console.log('Синхронизация успешно завершена')
                 courseInitialized.current = false;
                 groupInitialized.current = false;
             }
