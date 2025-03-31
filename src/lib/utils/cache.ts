@@ -1,4 +1,3 @@
-// src/lib/utils/cache.ts
 import { CacheData } from '@/lib/types/cache';
 import { CACHE_CONSTANTS } from '@/lib/constants/cache';
 import { WeekSchedule } from '../types/shedule';
@@ -6,7 +5,6 @@ import { WeekSchedule } from '../types/shedule';
 export const validateCache = (cache: CacheData): boolean => {
 	if (!cache || !cache.metadata || !cache.data) return false;
 
-	// Проверяем версию кэша
 	if (cache.metadata.version !== CACHE_CONSTANTS.VERSION) {
 		console.log('Cache version mismatch', {
 			current: cache.metadata.version,
@@ -15,11 +13,9 @@ export const validateCache = (cache: CacheData): boolean => {
 		return false;
 	}
 
-	// Проверяем срок жизни кэша
 	const now = Date.now();
 	const cacheAge = now - cache.metadata.lastUpdated;
 
-	// Если кэш устарел совсем - он невалиден
 	if (cacheAge > CACHE_CONSTANTS.LIFETIME.SCHEDULE) {
 		console.log('Cache expired', {
 			age: Math.round(cacheAge / (60 * 60 * 1000)) + ' часов',
@@ -31,7 +27,7 @@ export const validateCache = (cache: CacheData): boolean => {
 	return true;
 };
 
-// Функция для проверки устаревания кэша (для уведомления пользователя)
+
 export const isCacheStale = (cache: CacheData): boolean => {
 	if (!cache || !cache.metadata) return true;
 

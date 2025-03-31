@@ -1,4 +1,4 @@
-// src/lib/hooks/useScheduleCache.ts
+
 import { useLocalStorage } from './useLocalStorage';
 import { ScheduleCache } from '@/lib/types/cache';
 import { CACHE_CONSTANTS } from '@/lib/constants/cache';
@@ -62,9 +62,9 @@ export function useScheduleCache() {
 		return weekCollection.weeks.find(w => w.weekId === weekCollection.activeWeekId) || null;
 	}, [weekCollection]);
 
-	// Проверка кэша при инициализации
+
 	useEffect(() => {
-		// При монтировании компонента проверяем, валиден ли кэш
+
 		const isValid = cache ? validateCache(cache) : false;
 		setIsCacheValid(isValid);
 		setIsInitialized(true);
@@ -86,7 +86,6 @@ export function useScheduleCache() {
 			operationInProgressRef.current = true;
 			const timestamp = Date.now();
 
-			// Создаем ID для недели
 			const weekId = `week-${weekName.replace(/[^a-zа-я0-9]/gi, '-').toLowerCase()}`;
 			const displayName = weekDate || weekName || 'Расписание';
 
@@ -97,7 +96,6 @@ export function useScheduleCache() {
 				schedule: scheduleData
 			};
 
-			// Проверяем, есть ли данные с тем же ID
 			let existingWeekUpdated = false;
 
 			setWeekCollection(current => {
@@ -112,7 +110,7 @@ export function useScheduleCache() {
 					updatedWeeks.push(newWeek);
 				}
 
-				// Сортируем и ограничиваем количество сохраненных недель
+
 				updatedWeeks = updatedWeeks
 					.sort((a, b) => b.uploadDate - a.uploadDate)
 					.slice(0, CACHE_CONSTANTS.MAX_STORED_WEEKS);
@@ -123,7 +121,7 @@ export function useScheduleCache() {
 				};
 			});
 
-			// Обновляем основной кэш
+
 			await safeSetCache({
 				data: scheduleData,
 				metadata: {
@@ -199,7 +197,7 @@ export function useScheduleCache() {
 		}
 	}, [setWeekCollection, weekCollection, safeSetCache]);
 
-	// Очищаем ресурсы при размонтировании
+
 	useEffect(() => {
 		return () => {
 			notificationsShownRef.current.clear();
