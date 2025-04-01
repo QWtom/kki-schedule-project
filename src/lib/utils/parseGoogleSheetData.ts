@@ -1,4 +1,4 @@
-// src/lib/utils/parseGoogleSheetData.ts
+
 import { v4 as uuidv4 } from 'uuid';
 import { ParsedSchedule } from '@/lib/types/shedule';
 import { parseTimeSlot } from '@/shared/lib/parseTimeSlot';
@@ -7,15 +7,12 @@ import { detectLessonType } from '@/shared/lib/detectLessonType';
 import { parseCourseInfo } from '@/shared/lib/parseCourseInfo';
 
 export const parseGoogleSheetData = (data: Record<string, any[]>): ParsedSchedule => {
-	// Здесь мы получаем данные из Google Sheets и преобразуем их в формат ParsedSchedule
-	// Судя по скриншотам, структура данных в Google Sheets похожа на Excel файлы
 
 	const result: ParsedSchedule = {
 		groups: [],
 		schedule: {},
 	};
 
-	// Перебираем все листы (ключи объекта data.data)
 	if (!data.data) return result;
 
 	Object.keys(data.data).forEach((sheetName: any) => {
@@ -31,7 +28,6 @@ export const parseGoogleSheetData = (data: Record<string, any[]>): ParsedSchedul
 			return;
 		}
 
-		// Ищем строку с заголовком "Время"
 		let groupsRowIndex = -1;
 		for (let i = 0; i < Math.min(20, sheetData.length); i++) {
 			const row = sheetData[i];
@@ -46,7 +42,6 @@ export const parseGoogleSheetData = (data: Record<string, any[]>): ParsedSchedul
 			return;
 		}
 
-		// Получаем названия групп
 		const groupsRow = sheetData[groupsRowIndex];
 		for (let i = 2; i < groupsRow.length; i += 2) {
 			const groupName = groupsRow[i];
@@ -62,7 +57,6 @@ export const parseGoogleSheetData = (data: Record<string, any[]>): ParsedSchedul
 			}
 		}
 
-		// Парсим расписание
 		let currentDay = '';
 		for (let rowIndex = groupsRowIndex + 1; rowIndex < sheetData.length; rowIndex++) {
 			const row = sheetData[rowIndex];
