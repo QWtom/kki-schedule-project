@@ -31,10 +31,3 @@ export const parseTimeSlot = (timeCell: string) => {
 		formatted: `${start}-${end}`
 	};
 };
-
-// // Тесты
-// console.log(parseTimeSlot('8:00-9:20'));           // Обычный формат
-// console.log(parseTimeSlot('9:30-     10:50'));     // Много пробелов
-// console.log(parseTimeSlot('8:00–9:20'));           // Другой тип дефиса
-// console.log(parseTimeSlot('800-920'));             // Без двоеточия
-// console.log(parseTimeSlot('8:00 - 9:20'));         // Пробелы вокруг дефиса
