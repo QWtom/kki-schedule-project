@@ -1,4 +1,3 @@
-// src/components/schedule/ScheduleInfo.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -38,7 +37,6 @@ export const ScheduleInfo = ({
 		setMounted(true);
 	}, []);
 
-	// Форматируем время последнего обновления
 	const formatLastUpdate = (date: Date | null) => {
 		if (!date || !mounted) return 'Нет данных';
 
