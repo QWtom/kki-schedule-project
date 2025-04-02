@@ -1,4 +1,4 @@
-// src/lib/context/AppModeContext.tsx
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -20,7 +20,7 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
 	const [lastSyncTime, setLastSyncTime] = useLocalStorage<number | null>('last_sync_time', null);
 	const [isOnline, setIsOnline] = useState(true);
 
-	// Проверка подключения к интернету
+
 	useEffect(() => {
 		const updateOnlineStatus = () => {
 			setIsOnline(navigator.onLine);
@@ -38,10 +38,6 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
 
 	const setMode = (newMode: AppMode) => {
 		setModeState(newMode);
-	};
-
-	const updateLastSyncTime = () => {
-		setLastSyncTime(Date.now());
 	};
 
 	return (
