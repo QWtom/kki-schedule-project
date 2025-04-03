@@ -1,6 +1,5 @@
-// Добавьте механизм защиты от повторных запросов
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 5000; // 5 секунд между запросами
+const MIN_REQUEST_INTERVAL = 5000;
 
 export const getGoogleSheet = async () => {
 	try {

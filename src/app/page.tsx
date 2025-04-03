@@ -35,7 +35,6 @@ import { useNotification } from '@/lib/context/NotificationContext';
 import { useFavorites } from '@/lib/hooks/useFavorites';
 import { useAppMode } from '@/lib/hooks/useAppMode';
 import { useGoogleSheets } from '@/lib/hooks/useGoogleSheets';
-import { AppModeToggle } from '@/components/AppModeToggle';
 
 export default function Home() {
     const { showNotification } = useNotification();
