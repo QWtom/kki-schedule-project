@@ -375,16 +375,6 @@ export default function Home() {
                         }}
                     >
                         <Stack spacing={3}>
-                            {/* Выбор недели (только для оффлайн режима) */}
-                            {isOfflineMode && weeks.length > 0 && (
-                                <WeekSelector
-                                    weeks={weeks}
-                                    activeWeekId={activeWeek?.weekId || null}
-                                    onWeekChange={setActiveWeek}
-                                    disabled={isLoading}
-                                />
-                            )}
-
                             {/* Кнопки загрузки и синхронизации */}
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                                 {isOfflineMode && (
