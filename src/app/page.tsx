@@ -218,7 +218,7 @@ export default function Home() {
                         px: { xs: 2, sm: 3, md: 0 }
                     }}
                 >
-                    Расписание учебных занятий ГБПОУ РС(Я) "Колледж креативных индустрий - "Айар уустар"
+                    Расписание учебных занятий ГБПОУ РС(Я) "Колледж креативных индустрий - "АЙАР УУСТАР"
                 </Typography>
                 <Box
                     sx={{
@@ -375,16 +375,6 @@ export default function Home() {
                         }}
                     >
                         <Stack spacing={3}>
-                            {/* Выбор недели (только для оффлайн режима) */}
-                            {isOfflineMode && weeks.length > 0 && (
-                                <WeekSelector
-                                    weeks={weeks}
-                                    activeWeekId={activeWeek?.weekId || null}
-                                    onWeekChange={setActiveWeek}
-                                    disabled={isLoading}
-                                />
-                            )}
-
                             {/* Кнопки загрузки и синхронизации */}
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                                 {isOfflineMode && (
