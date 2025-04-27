@@ -29,7 +29,6 @@ import { CourseSelector } from '@/components/schedule/CourseSelector';
 import { FavoriteGroups } from '@/components/schedule/FavoriteGroups';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import { WeekSelector } from '@/components/schedule/WeekSelector';
 import { useScheduleCache } from '@/lib/hooks/useScheduleCache';
 import { useNotification } from '@/lib/context/NotificationContext';
 import { useFavorites } from '@/lib/hooks/useFavorites';
@@ -65,10 +64,8 @@ export default function Home() {
     } = useScheduleImport();
 
     const {
-        weeks,
         activeWeek,
         saveWeekSchedule,
-        setActiveWeek
     } = useScheduleCache();
 
     const courseInitialized = useRef(false);
@@ -196,7 +193,7 @@ export default function Home() {
 
     return (
         <Container maxWidth="lg">
-            {/* Заголовок */}
+            {/* Header */}
             <Box sx={{ position: 'relative', mb: { xs: 4 } }}>
                 <Typography
                     variant="h4"
@@ -332,7 +329,7 @@ export default function Home() {
                                 </Box>
                             </Box>
 
-                            {/* Индикатор состояния данных */}
+                            {/* Indicate state progress */}
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 {isLoading ? (
                                     <Chip
@@ -365,7 +362,7 @@ export default function Home() {
                         </Paper>
                     )}
 
-                    {/* Основной интерфейс */}
+                    {/* Main interface */}
                     <Paper
                         elevation={0}
                         sx={{
@@ -375,7 +372,7 @@ export default function Home() {
                         }}
                     >
                         <Stack spacing={3}>
-                            {/* Кнопки загрузки и синхронизации */}
+                            {/* Button download and progress */}
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                                 {isOfflineMode && (
                                     <Box>
@@ -413,7 +410,7 @@ export default function Home() {
                                 )}
                             </Box>
 
-                            {/* Отображение ошибок */}
+                            {/* Alert error */}
                             {error && (
                                 <Alert
                                     severity="error"
@@ -428,7 +425,7 @@ export default function Home() {
                                 </Alert>
                             )}
 
-                            {/* Избранные группы */}
+                            {/* Favorite group */}
                             {currentParsedData && (
                                 <FavoriteGroups
                                     groups={currentParsedData.groups}
@@ -437,7 +434,7 @@ export default function Home() {
                                 />
                             )}
 
-                            {/* Выбор курса и группы */}
+                            {/* Select course and group */}
                             <Stack spacing={2}>
                                 <CourseSelector
                                     groups={currentParsedData?.groups || []}
@@ -456,7 +453,7 @@ export default function Home() {
                         </Stack>
                     </Paper>
 
-                    {/* Отображение расписания */}
+                    {/* Lesson card layout */}
                     {selectedGroup && currentParsedData && (
                         <Paper
                             elevation={0}
