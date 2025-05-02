@@ -59,7 +59,6 @@ export default function Home() {
         error: importError,
         parsedData: importParsedData,
         handleFileImport,
-        checkDataFreshness,
         resetError: resetImportError,
     } = useScheduleImport();
 
