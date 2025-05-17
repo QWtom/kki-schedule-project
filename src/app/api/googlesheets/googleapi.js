@@ -3,7 +3,6 @@ const MIN_REQUEST_INTERVAL = 5000;
 
 export const getGoogleSheet = async () => {
 	try {
-		// Защита от частых запросов на клиенте
 		const now = Date.now();
 		if (now - lastRequestTime < MIN_REQUEST_INTERVAL) {
 			console.log(`Throttling API request. Last request was ${(now - lastRequestTime) / 1000}s ago`);
