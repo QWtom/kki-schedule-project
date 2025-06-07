@@ -52,7 +52,6 @@ export function useFavorites() {
 		setFavorites(loadFavoritesFromStorage());
 		setIsLoaded(true);
 
-		// Функция обработчик события
 		const handleFavoritesChange = (event: Event) => {
 			const customEvent = event as CustomEvent<FavoritesState>;
 			setFavorites(customEvent.detail);
