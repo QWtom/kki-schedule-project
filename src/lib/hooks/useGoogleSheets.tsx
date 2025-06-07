@@ -174,19 +174,16 @@ export function useGoogleSheets() {
 	const fetchGoogleSheetData = useCallback(async (silent = false) => {
 
 		if (!isOnlineMode) {
-			console.log('Оффлайн режим, запрос не выполняется');
 			return parsedDataState;
 		}
 
 
 		if (activeRequestRef.current) {
-			console.log('Запрос уже выполняется, ожидаем его завершения');
 			return activeRequestRef.current;
 		}
 
 
 		if (isLoading) {
-			console.log('Загрузка уже в процессе, запрос пропущен');
 			return parsedDataState;
 		}
 
@@ -194,7 +191,6 @@ export function useGoogleSheets() {
 		setError(null);
 
 		try {
-			console.log('Выполняем запрос к API');
 
 
 			const requestPromise = getGoogleSheet();
@@ -207,7 +203,6 @@ export function useGoogleSheets() {
 				throw new Error('Не удалось получить данные расписания');
 			}
 
-			console.log('Данные получены, обрабатываем');
 
 
 			return await saveAndUpdateData(data, silent);
@@ -217,7 +212,6 @@ export function useGoogleSheets() {
 
 			const apiCache = checkApiCache();
 			if (apiCache) {
-				console.log('Используем API-кэш после ошибки');
 
 				try {
 
